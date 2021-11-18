@@ -1,3 +1,35 @@
+//bullets
+
+//preloader
+
+// let app = new PIXI.Application({ width: 800, height: 600 });
+// document.body.appendChild(app.view);
+// let player;
+
+// app.loader.baseUrl = "images";
+// app.loader.add("player", "sample.png");
+// app.loader.onProgress.add(showProgress);
+// app.loader.onComplete.add(doneLoading);
+// app.loader.onError.add(reportError);
+// app.loader.load();
+
+// function showProgress(e) {
+//     console.log(e.progress);
+// }
+
+// function doneLoading() {
+//     console.log("DONE LOADING");
+//     player = PIXI.Sprite.from(app.loader.resources.player.texture);
+//     player.x = app.view.width / 2;
+//     player.y = app.view.height / 2;
+//     player.anchor.set(0.5);
+//     app.stage.addChild(player);
+// }
+
+// function reportError(e) {
+//     console.log("ERROR: " + e.message);
+// }
+
 //obsługa klawiszy i myszki
 // let keys = {};
 
