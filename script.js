@@ -1,46 +1,134 @@
+//SpriteSheet animated movement
+
+// let keys = {};
+
+// let app = new PIXI.Application({ width: 800, height: 600 });
+// let div = document.getElementById("keys");
+// let playerSheet = {};
+// let player;
+// let speed = 0.5;
+// document.body.appendChild(app.view);
+
+// app.loader.add("player", "images/player.png");
+// app.loader.load(doneLoading);
+
+// function createPlayer() {
+//     player = new PIXI.AnimatedSprite(playerSheet.standNorth);
+//     player.anchor.set(0.5);
+//     player.animationSpeed = 2;
+//     player.loop = false;
+//     player.x = app.view.width / 2;
+//     player.y = app.view.height / 2;
+//     app.stage.addChild(player);
+//     player.play();
+// }
+
+// function createPlayerSheet() {
+//     player = PIXI.BaseTexture.from(app.loader.resources["player"].url);
+//     let w = 20;
+//     let h = 26;
+//     playerSheet["standNorth"] = [
+//         new PIXI.Texture(player, new PIXI.Rectangle(1 * w, 0, w, h)),
+//     ];
+//     playerSheet["walkNorth"] = [
+//         new PIXI.Texture(player, new PIXI.Rectangle(0 * w, 0, w, h)),
+//         new PIXI.Texture(player, new PIXI.Rectangle(1 * w, 0, w, h)),
+//         new PIXI.Texture(player, new PIXI.Rectangle(2 * w, 0, w, h)),
+//     ];
+// }
+
+// function doneLoading(e) {
+//     createPlayerSheet();
+//     createPlayer();
+//     app.ticker.add(gameLoop);
+// }
+
+// function movePlayer(e) {
+//     let position = e.data.global;
+//     player.x = position.x;
+//     player.y = position.y;
+// }
+
+// function handleKeyDown(e) {
+//     console.log(e.keyCode);
+//     keys[e.keyCode] = true;
+// }
+
+// function handleKeyUp(e) {
+//     console.log(e.keyCode);
+//     keys[e.keyCode] = false;
+// }
+
+// function gameLoop() {
+//     div.innerHTML = JSON.stringify(keys);
+
+//     if (keys["39"]) {
+//         if (!player.playing) {
+//             player.textures = playerSheet.walkNorth;
+//             player.play();
+//         }
+//         player.x += speed;
+//     }
+
+//     if (keys["37"]) {
+//         player.x -= 5;
+//     }
+
+//     if (keys["38"]) {
+//         player.y -= 5;
+//     }
+
+//     if (keys["40"]) {
+//         player.y += 5;
+//     }
+// }
+
+// window.addEventListener("keydown", handleKeyDown);
+// window.addEventListener("keyup", handleKeyUp);
+
 //collision detection
 
-let app = new PIXI.Application({ width: 800, height: 600 });
-let player = PIXI.Sprite.from("images/player.png");
-let enemy = PIXI.Sprite.from("images/enemy.png");
-let div = document.getElementById("keys");
+// let app = new PIXI.Application({ width: 800, height: 600 });
+// let player = PIXI.Sprite.from("images/player.png");
+// let enemy = PIXI.Sprite.from("images/enemy.png");
+// let div = document.getElementById("keys");
 
-document.querySelector("#gameDiv").appendChild(app.view);
-player.anchor.set(0.5);
-player.x = 25;
-player.y = app.view.height / 2;
-app.stage.addChild(player);
+// document.querySelector("#gameDiv").appendChild(app.view);
+// player.anchor.set(0.5);
+// player.x = 25;
+// player.y = app.view.height / 2;
+// app.stage.addChild(player);
 
-document.querySelector("#gameDiv").appendChild(app.view);
-enemy.anchor.set(0.5);
-enemy.x = app.view.width - 25;
-enemy.y = app.view.height / 2;
-app.stage.addChild(enemy);
+// document.querySelector("#gameDiv").appendChild(app.view);
+// enemy.anchor.set(0.5);
+// enemy.x = app.view.width - 25;
+// enemy.y = app.view.height / 2;
+// app.stage.addChild(enemy);
 
-app.stage.interactive = true;
-app.stage.on("pointermove", movePlayer);
+// app.stage.interactive = true;
+// app.stage.on("pointermove", movePlayer);
 
-function movePlayer(e) {
-    let position = e.data.global;
-    player.x = position.x;
-    player.y = position.y;
+// function movePlayer(e) {
+//     let position = e.data.global;
+//     player.x = position.x;
+//     player.y = position.y;
 
-    if (collisionDetection(player, enemy)) {
-        console.log("Collision detected!");
-    }
-}
+//     if (collisionDetection(player, enemy)) {
+//         console.log("Collision detected!");
+//     }
+// }
 
-function collisionDetection(a, b) {
-    let aBox = a.getBounds();
-    let bBox = b.getBounds();
+// function collisionDetection(a, b) {
+//     let aBox = a.getBounds();
+//     let bBox = b.getBounds();
 
-    return (
-        aBox.x + aBox.width > bBox.x &&
-        aBox.x < bBox.x + bBox.width &&
-        aBox.y + aBox.height > bBox.y &&
-        bBox.y < bBox.y + bBox.height
-    );
-}
+//     return (
+//         aBox.x + aBox.width > bBox.x &&
+//         aBox.x < bBox.x + bBox.width &&
+//         aBox.y + aBox.height > bBox.y &&
+//         bBox.y < bBox.y + bBox.height
+//     );
+// }
 
 //bullets
 
