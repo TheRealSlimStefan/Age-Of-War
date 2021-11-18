@@ -1,85 +1,129 @@
-//bullets
-
-let keys = {};
-let bullets = [];
-let bulletSpeed = 10;
+//collision detection
 
 let app = new PIXI.Application({ width: 800, height: 600 });
-let player = PIXI.Sprite.from("images/sample.png");
+let player = PIXI.Sprite.from("images/player.png");
+let enemy = PIXI.Sprite.from("images/enemy.png");
 let div = document.getElementById("keys");
 
 document.querySelector("#gameDiv").appendChild(app.view);
 player.anchor.set(0.5);
-player.x = app.view.width / 2;
+player.x = 25;
 player.y = app.view.height / 2;
-
 app.stage.addChild(player);
 
+document.querySelector("#gameDiv").appendChild(app.view);
+enemy.anchor.set(0.5);
+enemy.x = app.view.width - 25;
+enemy.y = app.view.height / 2;
+app.stage.addChild(enemy);
+
 app.stage.interactive = true;
-document.querySelector("#gameDiv").addEventListener("pointerdown", fireBullet);
+app.stage.on("pointermove", movePlayer);
 
-function fireBullet(e) {
-    console.log("Fire!");
+function movePlayer(e) {
+    let position = e.data.global;
+    player.x = position.x;
+    player.y = position.y;
 
-    let bullet = createBullet();
-    bullets.push(bullet);
-}
-
-function createBullet() {
-    let bullet = new PIXI.Sprite.from("images/bullet.png");
-    bullet.anchor.set(0.5);
-    bullet.x = player.x;
-    bullet.y = player.y;
-    bullet.speed = bulletSpeed;
-    app.stage.addChild(bullet);
-
-    return bullet;
-}
-
-app.ticker.add(gameLoop);
-
-function updateBullets() {
-    for (let i = 0; i < bullets.length; i++) {
-        bullets[i].position.y -= bulletSpeed;
-        if (bullets[i].position.y < 0) {
-            app.stage.removeChild(bullets[i]);
-            bullets.splice(i, 1);
-        }
+    if (collisionDetection(player, enemy)) {
+        console.log("Collision detected!");
     }
 }
 
-function handleKeyDown(e) {
-    console.log(e.keyCode);
-    keys[e.keyCode] = true;
+function collisionDetection(a, b) {
+    let aBox = a.getBounds();
+    let bBox = b.getBounds();
+
+    return (
+        aBox.x + aBox.width > bBox.x &&
+        aBox.x < bBox.x + bBox.width &&
+        aBox.y + aBox.height > bBox.y &&
+        bBox.y < bBox.y + bBox.height
+    );
 }
 
-function handleKeyUp(e) {
-    console.log(e.keyCode);
-    keys[e.keyCode] = false;
-}
+//bullets
 
-function gameLoop(delta) {
-    if (keys["39"]) {
-        player.x += 5;
-    }
+// let keys = {};
+// let bullets = [];
+// let bulletSpeed = 10;
 
-    if (keys["37"]) {
-        player.x -= 5;
-    }
+// let app = new PIXI.Application({ width: 800, height: 600 });
+// let player = PIXI.Sprite.from("images/sample.png");
+// let div = document.getElementById("keys");
 
-    if (keys["38"]) {
-        player.y -= 5;
-    }
+// document.querySelector("#gameDiv").appendChild(app.view);
+// player.anchor.set(0.5);
+// player.x = app.view.width / 2;
+// player.y = app.view.height / 2;
 
-    if (keys["40"]) {
-        player.y += 5;
-    }
+// app.stage.addChild(player);
 
-    updateBullets(delta);
-}
+// app.stage.interactive = true;
+// document.querySelector("#gameDiv").addEventListener("pointerdown", fireBullet);
 
-window.addEventListener("keydown", handleKeyDown);
-window.addEventListener("keyup", handleKeyUp);
+// function fireBullet(e) {
+//     console.log("Fire!");
+
+//     let bullet = createBullet();
+//     bullets.push(bullet);
+// }
+
+// function createBullet() {
+//     let bullet = new PIXI.Sprite.from("images/bullet.png");
+//     bullet.anchor.set(0.5);
+//     bullet.x = player.x;
+//     bullet.y = player.y;
+//     bullet.speed = bulletSpeed;
+//     app.stage.addChild(bullet);
+
+//     return bullet;
+// }
+
+// app.ticker.add(gameLoop);
+
+// function updateBullets() {
+//     for (let i = 0; i < bullets.length; i++) {
+//         bullets[i].position.y -= bulletSpeed;
+//         if (bullets[i].position.y < 0) {
+//             app.stage.removeChild(bullets[i]);
+//             bullets.splice(i, 1);
+//         }
+//     }
+// }
+
+// function handleKeyDown(e) {
+//     console.log(e.keyCode);
+//     keys[e.keyCode] = true;
+// }
+
+// function handleKeyUp(e) {
+//     console.log(e.keyCode);
+//     keys[e.keyCode] = false;
+// }
+
+// function gameLoop(delta) {
+//     if (keys["39"]) {
+//         player.x += 5;
+//     }
+
+//     if (keys["37"]) {
+//         player.x -= 5;
+//     }
+
+//     if (keys["38"]) {
+//         player.y -= 5;
+//     }
+
+//     if (keys["40"]) {
+//         player.y += 5;
+//     }
+
+//     updateBullets(delta);
+// }
+
+// window.addEventListener("keydown", handleKeyDown);
+// window.addEventListener("keyup", handleKeyUp);
 
 //preloader
 
