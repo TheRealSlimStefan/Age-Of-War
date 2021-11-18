@@ -1,3 +1,42 @@
+//pointerEvents
+
+// const NORMAL = 0xffffff;
+// const OVER = 0x00ff00;
+// const DOWN = 0xff0000;
+
+// let app = new PIXI.Application({ width: 800, height: 600 });
+// document.querySelector("#gameDiv").appendChild(app.view);
+
+// let redRect = new PIXI.Graphics();
+// redRect.beginFill(NORMAL);
+// redRect.drawRect(app.view.width / 2 - 100, app.view.height / 2 - 100, 200, 200);
+// redRect.interactive = true;
+// redRect.buttonMode = true;
+// redRect.on("pointerup", doPointerUp);
+// redRect.on("pointerdown", doPointerDown);
+// redRect.on("pointerover", doPointerOver);
+// redRect.on("pointerout", doPointerOut);
+// app.stage.addChild(redRect);
+
+// function doPointerUp(e) {
+//     console.log("doPointerUp");
+//     this.tint = NORMAL;
+// }
+
+// function doPointerDown(e) {
+//     console.log("doPointerDown");
+//     this.tint = DOWN;
+// }
+
+// function doPointerOver(e) {
+//     console.log("doPointerOver");
+//     this.tint = OVER;
+// }
+
+// function doPointerOut(e) {
+//     console.log("doPointerOut");
+// }
+
 //containers
 
 // let app;
