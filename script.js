@@ -1,3 +1,136 @@
+class Base {
+    constructor(x, y) {
+        console.log("Stworzyłeś obiekt Baza!");
+
+        this.baseHealthPoints = 900;
+        this.baseMaxHealthPoints = 1000;
+        this.baseSize = 50;
+
+        this.baseHealthBar = new HealthBar(
+            x,
+            y,
+            this.baseHealthPoints,
+            this.baseMaxHealthPoints
+        );
+
+        this.base = new PIXI.Sprite.from("images/baza.png");
+        this.base.anchor.set(0.5);
+        this.base.x = this.baseSize + x;
+        this.base.y = y - this.baseSize;
+
+        app.stage.addChild(this.base);
+    }
+
+    getHealthPoints() {
+        return this.baseHealthPoints;
+    }
+
+    addDamage(amount) {
+        console.log("Here I am!");
+        this.baseHealthPoints -= amount;
+        console.log(this.baseHealthPoints);
+    }
+}
+
+class Soldier {
+    constructor(x) {
+        console.log("Stworzyłeś obiekt Soldier!");
+
+        this.soldierWidth = 15;
+        this.soldierHeight = 45;
+        this.soldierHealthPoints = 100;
+        this.soldierMaxHealthPoints = 100;
+        this.damage = 25;
+
+        let soldier = PIXI.Sprite.from("images/soldier.png");
+        soldier.anchor.set(0.5);
+        soldier.x = 120;
+        soldier.y = app.view.height - 22.5;
+
+        soldiers.push(soldier);
+
+        app.stage.addChild(soldier);
+    }
+
+    damage() {
+        return this.damage();
+    }
+}
+
+class Button {
+    constructor(x, y, width, height) {
+        let button = new PIXI.Graphics();
+        button.beginFill(0xffffff);
+        button.drawRect(x, y, width, height);
+        button.interactive = true;
+        button.buttonMode = true;
+        button.on("pointerdown", doPointerDown);
+        app.stage.addChild(button);
+    }
+}
+
+class HealthBar {
+    constructor(x, y, actual, max) {
+        console.log("Stworzyłeś obiekt HealthBar!");
+
+        let healthBar = new PIXI.Graphics();
+        healthBar.beginFill(0x00cc00);
+        healthBar.drawRect(x + 10, y - 120, 80, 10);
+        app.stage.addChild(healthBar);
+
+        let healthBar2 = new PIXI.Graphics();
+        healthBar2.beginFill(0x00ff00);
+        healthBar2.drawRect(x + 10, y - 120, (actual / max) * 80, 10);
+        app.stage.addChild(healthBar2);
+    }
+}
+
+let app;
+let soldiers = [];
+let playerBase = {};
+let enemyBase = {};
+
+app = new PIXI.Application({
+    width: 1000,
+    height: 500,
+    backgroundColor: 0x87ceeb,
+});
+
+document.querySelector("#game").appendChild(app.view);
+app.stage.interactive = true;
+app.ticker.add(gameLoop);
+
+playerBase = { x: 0, y: app.view.height };
+enemyBase = { x: app.view.width, y: app.view.height };
+
+// playerBase = new PIXI.Sprite.from("images/baza.png");
+// base.anchor.set(0.5);
+// base.x = baseSize + x;
+// base.y = y - baseSize;
+
+app.stage.addChild(base);
+
+let base1 = new Base(0, app.view.height);
+let base2 = new Base(app.view.width - 100, app.view.height);
+let button1 = new Button(0 + 50, 0 + 50, 50, 50);
+
+function gameLoop() {
+    moveSoldiers();
+}
+
+function moveSoldiers() {
+    for (let i = 0; i < soldiers.length; i++) {
+        if (soldiers[i].x >= app.view.width - 110) {
+            soldiers[i].x = app.view.width - 110;
+        } else soldiers[i].x += 5;
+    }
+}
+
+function doPointerDown(e) {
+    //console.log("doPointerDown");
+    new Soldier();
+}
+
 //pointerEvents
 
 // const NORMAL = 0xffffff;
