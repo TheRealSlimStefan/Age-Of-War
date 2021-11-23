@@ -1,92 +1,46 @@
-class Base {
-    constructor(x, y) {
-        console.log("Stworzyłeś obiekt Baza!");
-
-        this.baseHealthPoints = 900;
-        this.baseMaxHealthPoints = 1000;
-        this.baseSize = 50;
-
-        this.baseHealthBar = new HealthBar(
-            x,
-            y,
-            this.baseHealthPoints,
-            this.baseMaxHealthPoints
-        );
-
-        this.base = new PIXI.Sprite.from("images/baza.png");
-        this.base.anchor.set(0.5);
-        this.base.x = this.baseSize + x;
-        this.base.y = y - this.baseSize;
-
-        app.stage.addChild(this.base);
-    }
-
-    getHealthPoints() {
-        return this.baseHealthPoints;
-    }
-
-    addDamage(amount) {
-        console.log("Here I am!");
-        this.baseHealthPoints -= amount;
-        console.log(this.baseHealthPoints);
-    }
-}
-
 class Soldier {
-    constructor(x) {
-        console.log("Stworzyłeś obiekt Soldier!");
-
-        this.soldierWidth = 15;
-        this.soldierHeight = 45;
-        this.soldierHealthPoints = 100;
-        this.soldierMaxHealthPoints = 100;
-        this.damage = 25;
+    constructor(who) {
+        console.log("Stworzyłeś obiekt " + who + "Soldier!");
 
         let soldier = PIXI.Sprite.from("images/soldier.png");
         soldier.anchor.set(0.5);
-        soldier.x = 120;
-        soldier.y = app.view.height - 22.5;
 
-        soldiers.push(soldier);
+        if (who === "player") {
+            soldier.x = 120;
+            soldier.y = app.view.height - 22.5;
+
+            playerSoldiers.push({
+                sprite: soldier,
+                attack: this.attack,
+                attacking: false,
+                healthPoints: 30,
+                health: 30,
+            });
+        } else if (who === "enemy") {
+            soldier.x = app.view.width - 120;
+            soldier.y = app.view.height - 22.5;
+
+            enemySoldiers.push({
+                sprite: soldier,
+                attack: this.attack,
+                attacking: false,
+                healthPoints: 30,
+                health: 30,
+            });
+        }
 
         app.stage.addChild(soldier);
     }
 
-    damage() {
-        return this.damage();
-    }
-}
-
-class Button {
-    constructor(x, y, width, height) {
-        let button = new PIXI.Graphics();
-        button.beginFill(0xffffff);
-        button.drawRect(x, y, width, height);
-        button.interactive = true;
-        button.buttonMode = true;
-        button.on("pointerdown", doPointerDown);
-        app.stage.addChild(button);
-    }
-}
-
-class HealthBar {
-    constructor(x, y, actual, max) {
-        console.log("Stworzyłeś obiekt HealthBar!");
-
-        let healthBar = new PIXI.Graphics();
-        healthBar.beginFill(0x00cc00);
-        healthBar.drawRect(x + 10, y - 120, 80, 10);
-        app.stage.addChild(healthBar);
-
-        let healthBar2 = new PIXI.Graphics();
-        healthBar2.beginFill(0x00ff00);
-        healthBar2.drawRect(x + 10, y - 120, (actual / max) * 80, 10);
-        app.stage.addChild(healthBar2);
+    attack(object) {
+        console.log(object);
+        if (object.healthPoints > 0) object.healthPoints -= 10;
     }
 }
 
 let app;
-let soldiers = [];
+let playerSoldiers = [];
+let enemySoldiers = [];
 let playerBase = {};
 let enemyBase = {};
 
@@ -98,37 +52,305 @@ app = new PIXI.Application({
 
 document.querySelector("#game").appendChild(app.view);
 app.stage.interactive = true;
+
+playerBase = {
+    x: 0,
+    y: app.view.height,
+    baseSize: 100,
+    healthPoints: 100,
+    health: 100,
+};
+
+enemyBase = {
+    x: app.view.width,
+    y: app.view.height,
+    baseSize: 100,
+    healthPoints: 100,
+    health: 100,
+};
+
+createPlayerBase();
+createEnemyBase();
+createButton(50, 50, 50, 50, createPlayerSoldier);
+createButton(110, 50, 50, 50, createEnemySoldier);
+createBasesHealthBars(playerBase, enemyBase);
+
 app.ticker.add(gameLoop);
 
-playerBase = { x: 0, y: app.view.height };
-enemyBase = { x: app.view.width, y: app.view.height };
-
-// playerBase = new PIXI.Sprite.from("images/baza.png");
-// base.anchor.set(0.5);
-// base.x = baseSize + x;
-// base.y = y - baseSize;
-
-app.stage.addChild(base);
-
-let base1 = new Base(0, app.view.height);
-let base2 = new Base(app.view.width - 100, app.view.height);
-let button1 = new Button(0 + 50, 0 + 50, 50, 50);
-
 function gameLoop() {
-    moveSoldiers();
+    for (let i = 0; i < playerSoldiers.length; i++) {
+        if (playerSoldiers[i].healthPoints <= 0) {
+            app.stage.removeChild(playerSoldiers[i].healthBar);
+            app.stage.removeChild(playerSoldiers[i].sprite);
+            playerSoldiers.splice(i, 1);
+        }
+    }
+
+    for (let i = 0; i < enemySoldiers.length; i++) {
+        if (enemySoldiers[i].healthPoints <= 0) {
+            app.stage.removeChild(enemySoldiers[i].healthBar);
+            app.stage.removeChild(enemySoldiers[i].sprite);
+            enemySoldiers.splice(i, 1);
+        }
+    }
+
+    movePlayerSoldiers();
+    moveEnemySoldiers();
+
+    for (let i = 0; i < playerSoldiers.length; i++) {
+        createSoldierHealthBar(playerSoldiers[i]);
+    }
+
+    for (let i = 0; i < enemySoldiers.length; i++) {
+        createSoldierHealthBar(enemySoldiers[i]);
+    }
+
+    createBasesHealthBars(playerBase, enemyBase);
+    isGameOver();
 }
 
-function moveSoldiers() {
-    for (let i = 0; i < soldiers.length; i++) {
-        if (soldiers[i].x >= app.view.width - 110) {
-            soldiers[i].x = app.view.width - 110;
-        } else soldiers[i].x += 5;
+function isGameOver() {
+    if (playerBase.healthPoints <= 0) {
+        //cleanBoard();
+        drawEndScreen("Enemy wygrywa!");
+    }
+    if (enemyBase.healthPoints <= 0) {
+        //cleanBoard();
+        drawEndScreen("Player wygrywa!");
     }
 }
 
-function doPointerDown(e) {
-    //console.log("doPointerDown");
-    new Soldier();
+// function cleanBoard() {
+//     for (let i = 0; i < playerSoldiers.length; i++) {
+//         app.stage.removeChild(playerSoldiers[i].healthBar);
+//         app.stage.removeChild(playerSoldiers[i].sprite);
+//         playerSoldiers.splice(i, 1);
+//     }
+
+//     for (let i = 0; i < enemySoldiers.length; i++) {
+//         app.stage.removeChild(enemySoldiers[i].healthBar);
+//         app.stage.removeChild(enemySoldiers[i].sprite);
+//         enemySoldiers.splice(i, 1);
+//     }
+
+//     app.stage.removeChild(playerBase.playerBaseImage);
+// }
+
+function drawEndScreen(text) {
+    let endScreen = new PIXI.Graphics();
+    endScreen.beginFill(0x000000);
+    endScreen.drawRect(0, 0, app.stage.width, app.stage.height);
+    app.stage.addChild(endScreen);
+
+    endText = new PIXI.Text(text);
+    endText.x = app.view.width / 2;
+    endText.y = app.view.height / 2;
+    endText.anchor.set(0.5);
+    endText.style = new PIXI.TextStyle({
+        fill: 0xffffff,
+        fontSize: 40,
+    });
+    app.stage.addChild(endText);
+}
+
+function createPlayerBase() {
+    playerBase.playerBaseImage = new PIXI.Sprite.from("images/baza.png");
+    playerBase.playerBaseImage.anchor.set(0.5);
+    playerBase.playerBaseImage.x = playerBase.x + playerBase.baseSize / 2;
+    playerBase.playerBaseImage.y = playerBase.y - playerBase.baseSize / 2;
+    app.stage.addChild(playerBase.playerBaseImage);
+}
+
+function createEnemyBase() {
+    enemyBaseImage = new PIXI.Sprite.from("images/baza.png");
+    enemyBaseImage.anchor.set(0.5);
+    enemyBaseImage.x = enemyBase.x - enemyBase.baseSize / 2;
+    enemyBaseImage.y = enemyBase.y - enemyBase.baseSize / 2;
+    app.stage.addChild(enemyBaseImage);
+}
+
+function createButton(x, y, width, height, functionality) {
+    let button = new PIXI.Graphics();
+    button.beginFill(0xffffff);
+    button.drawRect(x, y, width, height);
+    button.interactive = true;
+    button.buttonMode = true;
+    button.on("pointerdown", functionality);
+    app.stage.addChild(button);
+}
+
+function createSoldierHealthBar(player) {
+    app.stage.removeChild(player.healthBar);
+
+    player.healthBar = new PIXI.Graphics();
+
+    player.healthBar.beginFill(0xff0000);
+    player.healthBar.drawRect(player.sprite.x - 5, player.sprite.y - 32, 10, 5);
+    app.stage.addChild(player.healthBar);
+
+    player.healthBar.beginFill(0x00ff00);
+    player.healthBar.drawRect(
+        player.sprite.x - 5,
+        player.sprite.y - 32,
+        (player.healthPoints / player.health) * 10,
+        5
+    );
+    app.stage.addChild(player.healthBar);
+}
+
+function createBasesHealthBars(playerBase, enemyBase) {
+    let healthBar = new PIXI.Graphics();
+
+    healthBar.beginFill(0xff0000);
+    healthBar.drawRect(
+        playerBase.x + 10,
+        playerBase.y - playerBase.baseSize - 20,
+        80,
+        10
+    );
+    app.stage.addChild(healthBar);
+
+    healthBar.beginFill(0x00ff00);
+    healthBar.drawRect(
+        playerBase.x + 10,
+        playerBase.y - playerBase.baseSize - 20,
+        (playerBase.healthPoints / playerBase.health) * 80,
+        10
+    );
+    app.stage.addChild(healthBar);
+
+    healthBar.beginFill(0xff0000);
+    healthBar.drawRect(
+        enemyBase.x - enemyBase.baseSize + 10,
+        enemyBase.y - enemyBase.baseSize - 20,
+        80,
+        10
+    );
+    app.stage.addChild(healthBar);
+
+    healthBar.beginFill(0x00ff00);
+    healthBar.drawRect(
+        enemyBase.x - enemyBase.baseSize + 10,
+        enemyBase.y - enemyBase.baseSize - 20,
+        (enemyBase.healthPoints / enemyBase.health) * 80,
+        10
+    );
+    app.stage.addChild(healthBar);
+}
+
+function movePlayerSoldiers() {
+    for (let i = 0; i < playerSoldiers.length; i++) {
+        console.log(playerSoldiers.length);
+        let collisionWithEnemyBase =
+            playerSoldiers[i].sprite.x >= app.view.width - 110;
+        let collisionWithAnotherPlayerSoldier =
+            i > 0 &&
+            playerSoldiers[i].sprite.x + 20 == playerSoldiers[i - 1].sprite.x;
+        let collisionWithEnemySoldier = false;
+
+        for (let j = 0; j < enemySoldiers.length; j++) {
+            if (playerSoldiers[i].sprite.x + 20 == enemySoldiers[j].sprite.x)
+                collisionWithEnemySoldier = { bool: true, which: j };
+        }
+
+        if (
+            !collisionWithEnemyBase &&
+            !collisionWithAnotherPlayerSoldier &&
+            !collisionWithEnemySoldier.bool
+        ) {
+            playerSoldiers[i].sprite.x += 5;
+        } else if (collisionWithEnemyBase && !playerSoldiers[i].attacking) {
+            playerSoldiers[i].attacking = true;
+            setTimeout(() => {
+                playerSoldiers[i].attack(enemyBase);
+                playerSoldiers[i].attacking = false;
+            }, 1000);
+        } else if (
+            collisionWithEnemySoldier.bool &&
+            !playerSoldiers[i].attacking
+        ) {
+            playerSoldiers[i].attacking = true;
+            setTimeout(() => {
+                playerSoldiers[i].attack(
+                    enemySoldiers[collisionWithEnemySoldier.which]
+                );
+                playerSoldiers[i].attacking = false;
+            }, 1000);
+        }
+    }
+}
+
+function moveEnemySoldiers() {
+    for (let i = 0; i < enemySoldiers.length; i++) {
+        let collisionWithPlayerBase = enemySoldiers[i].sprite.x <= 110;
+        let collisionWithAnotherEnemySoldier =
+            i > 0 &&
+            enemySoldiers[i].sprite.x - 20 == enemySoldiers[i - 1].sprite.x;
+        let collisionWithPlayerSoldier = false;
+
+        for (let j = 0; j < playerSoldiers.length; j++) {
+            if (enemySoldiers[i].sprite.x - 20 == playerSoldiers[j].sprite.x)
+                collisionWithPlayerSoldier = { bool: true, which: j };
+        }
+
+        if (
+            !collisionWithPlayerBase &&
+            !collisionWithAnotherEnemySoldier &&
+            !collisionWithPlayerSoldier.bool
+        ) {
+            enemySoldiers[i].sprite.x -= 5;
+        } else if (collisionWithPlayerBase && !enemySoldiers[i].attacking) {
+            enemySoldiers[i].attacking = true;
+            setTimeout(() => {
+                enemySoldiers[i].attack(playerBase);
+                enemySoldiers[i].attacking = false;
+            }, 1000);
+        } else if (
+            collisionWithPlayerSoldier.bool &&
+            !enemySoldiers[i].attacking
+        ) {
+            enemySoldiers[i].attacking = true;
+            setTimeout(() => {
+                enemySoldiers[i].attack(
+                    playerSoldiers[collisionWithPlayerSoldier.which]
+                );
+                enemySoldiers[i].attacking = false;
+            }, 1000);
+        }
+    }
+}
+
+// function attack() {
+//     for (let i = 0; i < playerSoldiers.length; i++) {
+//         if (
+//             !playerSoldiers[i].attacking &&
+//             playerSoldiers[i].sprite.x >= app.view.width - 110
+//         ) {
+//             playerSoldiers[i].attacking = true;
+//             setTimeout(() => {
+//                 playerSoldiers[i].attack(enemyBase);
+//                 playerSoldiers[i].attacking = false;
+//             }, 1000);
+//         }
+//     }
+
+//     for (let i = 0; i < enemySoldiers.length; i++) {
+//         if (!enemySoldiers[i].attacking && enemySoldiers[i].sprite.x <= 110) {
+//             enemySoldiers[i].attacking = true;
+//             setTimeout(() => {
+//                 enemySoldiers[i].attack(playerBase);
+//                 enemySoldiers[i].attacking = false;
+//             }, 1000);
+//         }
+//     }
+// }
+
+function createPlayerSoldier() {
+    new Soldier("player");
+}
+
+function createEnemySoldier() {
+    new Soldier("enemy");
 }
 
 //pointerEvents
