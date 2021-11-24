@@ -18,7 +18,7 @@ class Soldier {
                 attacking: false,
                 healthPoints: 30,
                 health: 30,
-                died: false,
+                soldierSize: 32,
             });
         } else if (who === "enemy") {
             soldier = new PIXI.AnimatedSprite(enemySheet.move);
@@ -35,6 +35,7 @@ class Soldier {
                 attacking: false,
                 healthPoints: 30,
                 health: 30,
+                soldierSize: 48,
             });
         }
 
@@ -52,7 +53,7 @@ let playerSoldiers = [];
 let enemySoldiers = [];
 let playerBase = {};
 let enemyBase = {};
-let gold = 500;
+let gold = 100;
 let soldierCost = 15;
 let goldInfo;
 let playerSheet = {};
@@ -224,7 +225,7 @@ function gameLoop() {
             app.stage.removeChild(enemySoldiers[i].healthBar);
             app.stage.removeChild(enemySoldiers[i].sprite);
             enemySoldiers.splice(i, 1);
-            gold += 133; //dodawać golda w zależoności od zabitego przeciwnika
+            gold += 20;
         }
     }
 
@@ -389,13 +390,21 @@ function createBasesHealthBars(playerBase, enemyBase) {
 
 function movePlayerSoldiers() {
     for (let i = 0; i < playerSoldiers.length; i++) {
+        //detecting collision with enemy base
         let collisionWithEnemyBase =
-            playerSoldiers[i].sprite.x >= app.view.width - 110;
+            playerSoldiers[i].sprite.x >=
+            app.view.width - enemyBase.baseSize - 10;
+
+        //detecting collision with another player soldier
         let collisionWithAnotherPlayerSoldier =
             i > 0 &&
-            playerSoldiers[i].sprite.x + 20 == playerSoldiers[i - 1].sprite.x;
-        let collisionWithEnemySoldier = false;
+            playerSoldiers[i].sprite.x +
+                playerSoldiers[i].soldierSize / 2 +
+                6 >=
+                playerSoldiers[i - 1].sprite.x;
 
+        //detecting collision with some enemy soldier
+        let collisionWithEnemySoldier = false;
         for (let j = 0; j < enemySoldiers.length; j++) {
             if (playerSoldiers[i].sprite.x + 20 == enemySoldiers[j].sprite.x)
                 collisionWithEnemySoldier = { bool: true, which: j };
@@ -447,12 +456,18 @@ function movePlayerSoldiers() {
 
 function moveEnemySoldiers() {
     for (let i = 0; i < enemySoldiers.length; i++) {
-        let collisionWithPlayerBase = enemySoldiers[i].sprite.x <= 110;
+        //detecting collision with player base
+        let collisionWithPlayerBase =
+            enemySoldiers[i].sprite.x <= playerBase.baseSize + 16;
+
+        //detecting collision with another enemy soldier
         let collisionWithAnotherEnemySoldier =
             i > 0 &&
-            enemySoldiers[i].sprite.x - 20 == enemySoldiers[i - 1].sprite.x;
-        let collisionWithPlayerSoldier = false;
+            enemySoldiers[i].sprite.x - enemySoldiers[i].soldierSize / 2 - 10 <=
+                enemySoldiers[i - 1].sprite.x;
 
+        //detecting collision with some player soldier
+        let collisionWithPlayerSoldier = false;
         for (let j = 0; j < playerSoldiers.length; j++) {
             if (enemySoldiers[i].sprite.x - 20 == playerSoldiers[j].sprite.x)
                 collisionWithPlayerSoldier = { bool: true, which: j };
@@ -495,7 +510,7 @@ function moveEnemySoldiers() {
                 enemySoldiers[i].sprite.stop();
             }, 1005);
         } else if (collisionWithAnotherEnemySoldier) {
-            enemySoldiers[i].sprite.textures = playerSheet.idle;
+            enemySoldiers[i].sprite.textures = enemySheet.idle;
             enemySoldiers[i].sprite.animationSpeed = 1;
             enemySoldiers[i].sprite.play();
         }
