@@ -33,8 +33,8 @@ class Soldier {
                 sprite: soldier,
                 attack: this.attack,
                 attacking: false,
-                healthPoints: 30,
-                health: 30,
+                healthPoints: 50,
+                health: 50,
                 soldierSize: 48,
             });
         }
@@ -48,17 +48,71 @@ class Soldier {
     }
 }
 
+class StrongSoldier {
+    constructor(who) {
+        let soldier;
+
+        if (who === "player") {
+            soldier = new PIXI.AnimatedSprite(playerSheet.move);
+            soldier.anchor.set(0.5);
+            soldier.animationSpeed = 0.3;
+            soldier.loop = true;
+            soldier.x = 50;
+            soldier.y = app.view.height - 17;
+            soldier.play();
+            app.stage.addChild(soldier);
+
+            playerSoldiers.push({
+                sprite: soldier,
+                attack: this.attack,
+                attacking: false,
+                healthPoints: 30,
+                health: 30,
+                soldierSize: 32,
+            });
+        } else if (who === "enemy") {
+            soldier = new PIXI.AnimatedSprite(enemySheet.move);
+            soldier.anchor.set(0.5);
+            soldier.animationSpeed = 0.4;
+            soldier.loop = true;
+            soldier.x = app.view.width - 50;
+            soldier.y = app.view.height - 20;
+            soldier.play();
+            app.stage.addChild(soldier);
+            enemySoldiers.push({
+                sprite: soldier,
+                attack: this.attack,
+                attacking: false,
+                healthPoints: 50,
+                health: 50,
+                soldierSize: 48,
+            });
+        }
+
+        app.stage.addChild(soldier);
+    }
+
+    attack(object) {
+        let randomDamage = Math.floor(Math.random() * (50 - 25)) + 25;
+        if (object.healthPoints > 0) object.healthPoints -= randomDamage;
+    }
+}
+
 let app;
 let playerSoldiers = [];
 let enemySoldiers = [];
 let playerBase = {};
 let enemyBase = {};
-let gold = 100;
-let soldierCost = 15;
+let playerGold = 50;
+let enemyGold = 30;
+let playerSoldierCost = 10;
+let playerStrongSoldierCost = 50;
+let enemySoldierCost = 20;
 let goldInfo;
 let playerSheet = {};
 let enemySheet = {};
 let background;
+let computerMakesMove = true;
 
 app = new PIXI.Application({
     width: 1000,
@@ -73,9 +127,6 @@ app.loader.add("enemyAttack", "images/enemyAttack.png");
 app.loader.add("enemyIdle", "images/enemyIdle.png");
 app.loader.add("background", "images/background.png");
 app.loader.load(doneLoading);
-//if(!player.playing) - to żeby nie ładowało animacji od początku
-//player.textures = playerSheet.walkNorth - podmiana textury
-//player.play() - trzeba ją odpalić potem
 
 background = PIXI.Sprite.from(app.loader.resources["background"].url);
 background.anchor.set(0.5);
@@ -102,17 +153,35 @@ enemyBase = {
     health: 100,
 };
 
-createPlayerBase();
-createEnemyBase();
-showGold();
-createButton(50, 50, 50, 50, createPlayerSoldier);
-createButton(110, 50, 50, 50, createEnemySoldier);
-createBasesHealthBars(playerBase, enemyBase);
-
 function doneLoading() {
     createPlayerSheet();
     createEnemySheet();
+    createPlayerBase();
+    createEnemyBase();
+    showGold();
+    createButton(50, 50, 50, 50, createPlayerSoldier);
+    createButton(110, 50, 50, 50, createPlayerStrongSoldier);
+    createBasesHealthBars(playerBase, enemyBase);
     app.ticker.add(gameLoop);
+}
+
+function artificialIntelligence() {
+    // let random = Math.floor(Math.random() * (10000 - 1000)) + 1000;
+    // let closeToBase = false;
+    // for (let i = 0; i < playerSoldiers.length; i++) {
+    //     if (playerSoldiers[i].sprite.x >= (app.view.width * 4) / 5) {
+    //         closeToBase = true;
+    //         console.log("Bardzo blisko!");
+    //     }
+    // }
+    // if (computerMakesMove || closeToBase) {
+    //     computerMakesMove = false;
+    //     setTimeout(() => {
+    //         if (enemyGold >= enemySoldierCost) createEnemySoldier();
+    //         computerMakesMove = true;
+    //         closeToBase = false;
+    //     }, random);
+    // }
 }
 
 function createPlayerSheet() {
@@ -217,6 +286,8 @@ function gameLoop() {
             app.stage.removeChild(playerSoldiers[i].healthBar);
             app.stage.removeChild(playerSoldiers[i].sprite);
             playerSoldiers.splice(i, 1);
+            enemyGold += 20;
+            console.log(enemyGold);
         }
     }
 
@@ -225,10 +296,11 @@ function gameLoop() {
             app.stage.removeChild(enemySoldiers[i].healthBar);
             app.stage.removeChild(enemySoldiers[i].sprite);
             enemySoldiers.splice(i, 1);
-            gold += 20;
+            playerGold += 20;
         }
     }
 
+    artificialIntelligence();
     movePlayerSoldiers();
     moveEnemySoldiers();
 
@@ -259,7 +331,7 @@ function isGameOver() {
 
 function showGold() {
     app.stage.removeChild(goldInfo);
-    goldInfo = new PIXI.Text("Złoto: " + gold);
+    goldInfo = new PIXI.Text("Złoto: " + playerGold);
     goldInfo.x = app.view.width / 2;
     goldInfo.y = 20;
     goldInfo.anchor.set(0.5);
@@ -518,14 +590,24 @@ function moveEnemySoldiers() {
 }
 
 function createPlayerSoldier() {
-    if (gold >= soldierCost) {
+    if (playerGold >= playerSoldierCost) {
         new Soldier("player");
-        gold -= soldierCost;
+        playerGold -= playerSoldierCost;
+    }
+}
+
+function createPlayerStrongSoldier() {
+    if (playerGold >= playerStrongSoldierCost) {
+        new StrongSoldier("player");
+        playerGold -= playerStrongSoldierCost;
     }
 }
 
 function createEnemySoldier() {
-    new Soldier("enemy");
+    if (enemyGold >= enemySoldierCost) {
+        new Soldier("enemy");
+        enemyGold -= enemySoldierCost;
+    }
 }
 
 //pointerEvents
