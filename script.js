@@ -3,7 +3,7 @@ class Soldier {
         let soldier;
 
         if (who === "player") {
-            soldier = new PIXI.AnimatedSprite(playerSheet.move);
+            soldier = new PIXI.AnimatedSprite(playerSheet.soldierMove);
             soldier.anchor.set(0.5);
             soldier.animationSpeed = 0.3;
             soldier.loop = true;
@@ -13,6 +13,7 @@ class Soldier {
             app.stage.addChild(soldier);
 
             playerSoldiers.push({
+                type: "normal",
                 sprite: soldier,
                 attack: this.attack,
                 attacking: false,
@@ -21,7 +22,7 @@ class Soldier {
                 soldierSize: 32,
             });
         } else if (who === "enemy") {
-            soldier = new PIXI.AnimatedSprite(enemySheet.move);
+            soldier = new PIXI.AnimatedSprite(enemySheet.soldierMove);
             soldier.anchor.set(0.5);
             soldier.animationSpeed = 0.4;
             soldier.loop = true;
@@ -35,7 +36,7 @@ class Soldier {
                 attacking: false,
                 healthPoints: 50,
                 health: 50,
-                soldierSize: 48,
+                soldierSize: 32,
             });
         }
 
@@ -53,25 +54,26 @@ class StrongSoldier {
         let soldier;
 
         if (who === "player") {
-            soldier = new PIXI.AnimatedSprite(playerSheet.move);
+            soldier = new PIXI.AnimatedSprite(playerSheet.strongSoldierMove);
             soldier.anchor.set(0.5);
             soldier.animationSpeed = 0.3;
             soldier.loop = true;
             soldier.x = 50;
-            soldier.y = app.view.height - 17;
+            soldier.y = app.view.height - 33;
             soldier.play();
             app.stage.addChild(soldier);
 
             playerSoldiers.push({
+                type: "strong",
                 sprite: soldier,
                 attack: this.attack,
                 attacking: false,
                 healthPoints: 30,
                 health: 30,
-                soldierSize: 32,
+                soldierSize: 64,
             });
         } else if (who === "enemy") {
-            soldier = new PIXI.AnimatedSprite(enemySheet.move);
+            soldier = new PIXI.AnimatedSprite(enemySheet.strongSoldierMove);
             soldier.anchor.set(0.5);
             soldier.animationSpeed = 0.4;
             soldier.loop = true;
@@ -103,28 +105,47 @@ let playerSoldiers = [];
 let enemySoldiers = [];
 let playerBase = {};
 let enemyBase = {};
-let playerGold = 50;
-let enemyGold = 30;
+let playerGold = 1000;
+let enemyGold = 1000;
 let playerSoldierCost = 10;
-let playerStrongSoldierCost = 50;
-let enemySoldierCost = 20;
+let playerStrongSoldierCost = 10;
+let enemySoldierCost = 10;
+let enemyStrongSoldierCost = 10;
 let goldInfo;
 let playerSheet = {};
 let enemySheet = {};
 let background;
 let computerMakesMove = true;
 
+let song = document.getElementById("mySong");
+
 app = new PIXI.Application({
     width: 1000,
     height: 500,
 });
 
-app.loader.add("playerMove", "images/playerMove.png");
-app.loader.add("playerAttack", "images/playerAttack.png");
-app.loader.add("playerIdle", "images/playerIdle.png");
-app.loader.add("enemyMove", "images/enemyMove.png");
-app.loader.add("enemyAttack", "images/enemyAttack.png");
-app.loader.add("enemyIdle", "images/enemyIdle.png");
+app.loader.add("playerSoldierMove", "images/playerSoldierMove.png");
+app.loader.add("playerSoldierAttack", "images/playerSoldierAttack.png");
+app.loader.add("playerSoldierIdle", "images/playerSoldierIdle.png");
+
+app.loader.add("playerStrongSoldierMove", "images/playerStrongSoldierMove.png");
+app.loader.add(
+    "playerStrongSoldierAttack",
+    "images/playerStrongSoldierAttack.png"
+);
+app.loader.add("playerStrongSoldierIdle", "images/playerStrongSoldierIdle.png");
+
+app.loader.add("enemyStrongSoldierMove", "images/enemyStrongSoldierMove.png");
+app.loader.add(
+    "enemyStrongSoldierAttack",
+    "images/enemyStrongSoldierAttack.png"
+);
+app.loader.add("enemyStrongSoldierIdle", "images/enemyStrongSoldierIdle.png");
+
+app.loader.add("enemySoldierMove", "images/enemySoldierMove.png");
+app.loader.add("enemySoldierAttack", "images/enemySoldierAttack.png");
+app.loader.add("enemySoldierIdle", "images/enemySoldierIdle.png");
+
 app.loader.add("background", "images/background.png");
 app.loader.load(doneLoading);
 
@@ -136,6 +157,10 @@ app.stage.addChild(background);
 
 document.querySelector("#game").appendChild(app.view);
 app.stage.interactive = true;
+
+document.querySelector("#game").onclick = function () {
+    // song.play();
+};
 
 playerBase = {
     x: 0,
@@ -161,6 +186,8 @@ function doneLoading() {
     showGold();
     createButton(50, 50, 50, 50, createPlayerSoldier);
     createButton(110, 50, 50, 50, createPlayerStrongSoldier);
+    createButton(170, 50, 50, 50, createEnemySoldier);
+    createButton(230, 50, 50, 50, createEnemyStrongSoldier);
     createBasesHealthBars(playerBase, enemyBase);
     app.ticker.add(gameLoop);
 }
@@ -182,102 +209,6 @@ function artificialIntelligence() {
     //         closeToBase = false;
     //     }, random);
     // }
-}
-
-function createPlayerSheet() {
-    let sheet = new PIXI.BaseTexture.from(
-        app.loader.resources["playerMove"].url
-    );
-    let w = 32;
-    let h = 32;
-    playerSheet["move"] = [
-        new PIXI.Texture(sheet, new PIXI.Rectangle(0 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(1 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(2 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(3 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(4 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(5 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(6 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(7 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(8 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(9 * w, 0, w, h)),
-    ];
-
-    sheet = new PIXI.BaseTexture.from(app.loader.resources["playerAttack"].url);
-    playerSheet["attack"] = [
-        new PIXI.Texture(sheet, new PIXI.Rectangle(0 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(1 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(2 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(3 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(4 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(5 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(6 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(7 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(8 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(9 * w, 0, w, h)),
-    ];
-
-    sheet = new PIXI.BaseTexture.from(app.loader.resources["playerIdle"].url);
-    playerSheet["idle"] = [
-        new PIXI.Texture(sheet, new PIXI.Rectangle(0 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(1 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(2 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(3 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(4 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(5 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(6 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(7 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(8 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(9 * w, 0, w, h)),
-    ];
-}
-
-function createEnemySheet() {
-    let sheet = new PIXI.BaseTexture.from(
-        app.loader.resources["enemyMove"].url
-    );
-    let w = 48;
-    let h = 38;
-    enemySheet["move"] = [
-        new PIXI.Texture(sheet, new PIXI.Rectangle(0 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(1 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(2 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(3 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(4 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(5 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(6 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(7 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(8 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(9 * w, 0, w, h)),
-    ];
-
-    sheet = new PIXI.BaseTexture.from(app.loader.resources["enemyAttack"].url);
-    enemySheet["attack"] = [
-        new PIXI.Texture(sheet, new PIXI.Rectangle(0 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(1 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(2 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(3 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(4 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(5 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(6 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(7 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(8 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(9 * w, 0, w, h)),
-    ];
-
-    sheet = new PIXI.BaseTexture.from(app.loader.resources["enemyIdle"].url);
-    enemySheet["idle"] = [
-        new PIXI.Texture(sheet, new PIXI.Rectangle(0 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(1 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(2 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(3 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(4 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(5 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(6 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(7 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(8 * w, 0, w, h)),
-        new PIXI.Texture(sheet, new PIXI.Rectangle(9 * w, 0, w, h)),
-    ];
 }
 
 function gameLoop() {
@@ -489,13 +420,13 @@ function movePlayerSoldiers() {
         ) {
             playerSoldiers[i].sprite.x += 2;
             if (!playerSoldiers[i].sprite.playing) {
-                playerSoldiers[i].sprite.textures = playerSheet.move;
+                playerSoldiers[i].sprite.textures = playerSheet.soldierMove;
                 playerSoldiers[i].sprite.animationSpeed = 0.3;
                 playerSoldiers[i].sprite.play();
             }
         } else if (collisionWithEnemyBase && !playerSoldiers[i].attacking) {
             playerSoldiers[i].attacking = true;
-            playerSoldiers[i].sprite.textures = playerSheet.attack;
+            playerSoldiers[i].sprite.textures = playerSheet.soldierAttack;
             playerSoldiers[i].sprite.animationSpeed = 0.1;
             playerSoldiers[i].sprite.play();
             setTimeout(() => {
@@ -508,7 +439,7 @@ function movePlayerSoldiers() {
             !playerSoldiers[i].attacking
         ) {
             playerSoldiers[i].attacking = true;
-            playerSoldiers[i].sprite.textures = playerSheet.attack;
+            playerSoldiers[i].sprite.textures = playerSheet.soldierAttack;
             playerSoldiers[i].sprite.animationSpeed = 0.1;
             playerSoldiers[i].sprite.play();
             setTimeout(() => {
@@ -519,7 +450,7 @@ function movePlayerSoldiers() {
                 playerSoldiers[i].sprite.stop();
             }, 1000);
         } else if (collisionWithAnotherPlayerSoldier) {
-            playerSoldiers[i].sprite.textures = playerSheet.idle;
+            playerSoldiers[i].sprite.textures = playerSheet.soldierIdle;
             playerSoldiers[i].sprite.animationSpeed = 1;
             playerSoldiers[i].sprite.play();
         }
@@ -552,13 +483,13 @@ function moveEnemySoldiers() {
         ) {
             enemySoldiers[i].sprite.x -= 2;
             if (!enemySoldiers[i].sprite.playing) {
-                enemySoldiers[i].sprite.textures = enemySheet.move;
+                enemySoldiers[i].sprite.textures = enemySheet.soldierMove;
                 enemySoldiers[i].sprite.animationSpeed = 0.4;
                 enemySoldiers[i].sprite.play();
             }
         } else if (collisionWithPlayerBase && !enemySoldiers[i].attacking) {
             enemySoldiers[i].attacking = true;
-            enemySoldiers[i].sprite.textures = enemySheet.attack;
+            enemySoldiers[i].sprite.textures = enemySheet.soldierAttack;
             enemySoldiers[i].sprite.animationSpeed = 0.1;
             enemySoldiers[i].sprite.play();
             setTimeout(() => {
@@ -571,7 +502,7 @@ function moveEnemySoldiers() {
             !enemySoldiers[i].attacking
         ) {
             enemySoldiers[i].attacking = true;
-            enemySoldiers[i].sprite.textures = enemySheet.attack;
+            enemySoldiers[i].sprite.textures = enemySheet.soldierAttack;
             enemySoldiers[i].sprite.animationSpeed = 0.1;
             enemySoldiers[i].sprite.play();
             setTimeout(() => {
@@ -582,7 +513,7 @@ function moveEnemySoldiers() {
                 enemySoldiers[i].sprite.stop();
             }, 1005);
         } else if (collisionWithAnotherEnemySoldier) {
-            enemySoldiers[i].sprite.textures = enemySheet.idle;
+            enemySoldiers[i].sprite.textures = enemySheet.soldierIdle;
             enemySoldiers[i].sprite.animationSpeed = 1;
             enemySoldiers[i].sprite.play();
         }
@@ -608,6 +539,213 @@ function createEnemySoldier() {
         new Soldier("enemy");
         enemyGold -= enemySoldierCost;
     }
+}
+
+function createEnemyStrongSoldier() {
+    if (enemyGold >= enemyStrongSoldierCost) {
+        new StrongSoldier("enemy");
+        enemyGold -= enemyStrongSoldierCost;
+    }
+}
+
+function createPlayerSheet() {
+    let sheet = new PIXI.BaseTexture.from(
+        app.loader.resources["playerSoldierMove"].url
+    );
+    let w = 32;
+    let h = 32;
+    playerSheet["soldierMove"] = [
+        new PIXI.Texture(sheet, new PIXI.Rectangle(0 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(1 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(2 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(3 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(4 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(5 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(6 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(7 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(8 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(9 * w, 0, w, h)),
+    ];
+
+    sheet = new PIXI.BaseTexture.from(
+        app.loader.resources["playerSoldierAttack"].url
+    );
+    playerSheet["soldierAttack"] = [
+        new PIXI.Texture(sheet, new PIXI.Rectangle(0 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(1 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(2 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(3 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(4 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(5 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(6 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(7 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(8 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(9 * w, 0, w, h)),
+    ];
+
+    sheet = new PIXI.BaseTexture.from(
+        app.loader.resources["playerSoldierIdle"].url
+    );
+    playerSheet["soldierIdle"] = [
+        new PIXI.Texture(sheet, new PIXI.Rectangle(0 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(1 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(2 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(3 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(4 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(5 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(6 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(7 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(8 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(9 * w, 0, w, h)),
+    ];
+
+    sheet = new PIXI.BaseTexture.from(
+        app.loader.resources["playerStrongSoldierMove"].url
+    );
+
+    w = 64;
+    h = 64;
+    playerSheet["strongSoldierMove"] = [
+        new PIXI.Texture(sheet, new PIXI.Rectangle(0 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(1 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(2 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(3 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(4 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(5 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(6 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(7 * w, 0, w, h)),
+    ];
+
+    sheet = new PIXI.BaseTexture.from(
+        app.loader.resources["playerStrongSoldierAttack"].url
+    );
+
+    w = 64;
+    h = 64;
+    playerSheet["strongSoldierAttack"] = [
+        new PIXI.Texture(sheet, new PIXI.Rectangle(0 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(1 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(2 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(3 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(4 * w, 0, w, h)),
+    ];
+
+    sheet = new PIXI.BaseTexture.from(
+        app.loader.resources["playerStrongSoldierIdle"].url
+    );
+
+    w = 64;
+    h = 64;
+    playerSheet["strongSoldierIdle"] = [
+        new PIXI.Texture(sheet, new PIXI.Rectangle(0 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(1 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(2 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(3 * w, 0, w, h)),
+    ];
+}
+
+function createEnemySheet() {
+    let w = 32;
+    let h = 32;
+    let sheet = new PIXI.BaseTexture.from(
+        app.loader.resources["enemySoldierMove"].url
+    );
+
+    enemySheet["soldierMove"] = [
+        new PIXI.Texture(sheet, new PIXI.Rectangle(0 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(1 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(2 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(3 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(4 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(5 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(6 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(7 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(8 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(9 * w, 0, w, h)),
+    ];
+
+    sheet = new PIXI.BaseTexture.from(
+        app.loader.resources["enemySoldierAttack"].url
+    );
+    enemySheet["soldierAttack"] = [
+        new PIXI.Texture(sheet, new PIXI.Rectangle(0 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(1 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(2 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(3 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(4 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(5 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(6 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(7 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(8 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(9 * w, 0, w, h)),
+    ];
+
+    sheet = new PIXI.BaseTexture.from(
+        app.loader.resources["enemySoldierIdle"].url
+    );
+    enemySheet["soldierIdle"] = [
+        new PIXI.Texture(sheet, new PIXI.Rectangle(0 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(1 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(2 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(3 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(4 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(5 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(6 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(7 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(8 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(9 * w, 0, w, h)),
+    ];
+
+    w = 48;
+    h = 38;
+    sheet = new PIXI.BaseTexture.from(
+        app.loader.resources["enemyStrongSoldierMove"].url
+    );
+
+    enemySheet["strongSoldierMove"] = [
+        new PIXI.Texture(sheet, new PIXI.Rectangle(0 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(1 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(2 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(3 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(4 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(5 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(6 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(7 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(8 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(9 * w, 0, w, h)),
+    ];
+
+    sheet = new PIXI.BaseTexture.from(
+        app.loader.resources["enemyStrongSoldierAttack"].url
+    );
+    enemySheet["strongSoldierAttack"] = [
+        new PIXI.Texture(sheet, new PIXI.Rectangle(0 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(1 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(2 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(3 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(4 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(5 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(6 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(7 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(8 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(9 * w, 0, w, h)),
+    ];
+
+    sheet = new PIXI.BaseTexture.from(
+        app.loader.resources["enemyStrongSoldierIdle"].url
+    );
+    enemySheet["strongSoldierIdle"] = [
+        new PIXI.Texture(sheet, new PIXI.Rectangle(0 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(1 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(2 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(3 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(4 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(5 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(6 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(7 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(8 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(9 * w, 0, w, h)),
+    ];
 }
 
 //pointerEvents
