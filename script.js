@@ -33,8 +33,8 @@ class Soldier {
     }
 
     attack(object) {
-        console.log(object);
-        if (object.healthPoints > 0) object.healthPoints -= 10;
+        let randomDamage = Math.floor(Math.random() * (20 - 10)) + 10;
+        if (object.healthPoints > 0) object.healthPoints -= randomDamage;
     }
 }
 
@@ -43,6 +43,9 @@ let playerSoldiers = [];
 let enemySoldiers = [];
 let playerBase = {};
 let enemyBase = {};
+let gold = 500;
+let soldierCost = 100;
+let goldInfo;
 
 app = new PIXI.Application({
     width: 1000,
@@ -71,6 +74,7 @@ enemyBase = {
 
 createPlayerBase();
 createEnemyBase();
+showGold();
 createButton(50, 50, 50, 50, createPlayerSoldier);
 createButton(110, 50, 50, 50, createEnemySoldier);
 createBasesHealthBars(playerBase, enemyBase);
@@ -91,6 +95,7 @@ function gameLoop() {
             app.stage.removeChild(enemySoldiers[i].healthBar);
             app.stage.removeChild(enemySoldiers[i].sprite);
             enemySoldiers.splice(i, 1);
+            gold += 133;
         }
     }
 
@@ -106,6 +111,8 @@ function gameLoop() {
     }
 
     createBasesHealthBars(playerBase, enemyBase);
+
+    showGold();
     isGameOver();
 }
 
@@ -118,6 +125,19 @@ function isGameOver() {
         //cleanBoard();
         drawEndScreen("Player wygrywa!");
     }
+}
+
+function showGold() {
+    app.stage.removeChild(goldInfo);
+    goldInfo = new PIXI.Text("Złoto: " + gold);
+    goldInfo.x = app.view.width / 2;
+    goldInfo.y = 20;
+    goldInfo.anchor.set(0.5);
+    goldInfo.style = new PIXI.TextStyle({
+        fill: 0xffffff,
+        fontSize: 16,
+    });
+    app.stage.addChild(goldInfo);
 }
 
 // function cleanBoard() {
@@ -346,7 +366,10 @@ function moveEnemySoldiers() {
 // }
 
 function createPlayerSoldier() {
-    new Soldier("player");
+    if (gold >= soldierCost) {
+        new Soldier("player");
+        gold -= soldierCost;
+    }
 }
 
 function createEnemySoldier() {
