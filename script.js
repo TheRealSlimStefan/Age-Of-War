@@ -1,12 +1,11 @@
 class Soldier {
     constructor(who) {
-        console.log("Stworzyłeś obiekt " + who + "Soldier!");
-
-        let soldier = PIXI.Sprite.from("images/soldier.png");
-        soldier.anchor.set(0.5);
+        let soldier;
 
         if (who === "player") {
-            soldier.x = 120;
+            soldier = PIXI.Sprite.from("images/playerSoldier.png");
+            soldier.anchor.set(0.5);
+            soldier.x = 50;
             soldier.y = app.view.height - 22.5;
 
             playerSoldiers.push({
@@ -17,7 +16,9 @@ class Soldier {
                 health: 30,
             });
         } else if (who === "enemy") {
-            soldier.x = app.view.width - 120;
+            soldier = PIXI.Sprite.from("images/enemySoldier.png");
+            soldier.anchor.set(0.5);
+            soldier.x = app.view.width - 50;
             soldier.y = app.view.height - 22.5;
 
             enemySoldiers.push({
@@ -50,8 +51,13 @@ let goldInfo;
 app = new PIXI.Application({
     width: 1000,
     height: 500,
-    backgroundColor: 0x87ceeb,
 });
+
+let background = PIXI.Sprite.from("images/background.png");
+background.anchor.set(0.5);
+background.x = app.view.width / 2;
+background.y = app.view.height / 2;
+app.stage.addChild(background);
 
 document.querySelector("#game").appendChild(app.view);
 app.stage.interactive = true;
@@ -174,7 +180,7 @@ function drawEndScreen(text) {
 }
 
 function createPlayerBase() {
-    playerBase.playerBaseImage = new PIXI.Sprite.from("images/baza.png");
+    playerBase.playerBaseImage = new PIXI.Sprite.from("images/playerBase.png");
     playerBase.playerBaseImage.anchor.set(0.5);
     playerBase.playerBaseImage.x = playerBase.x + playerBase.baseSize / 2;
     playerBase.playerBaseImage.y = playerBase.y - playerBase.baseSize / 2;
@@ -182,7 +188,7 @@ function createPlayerBase() {
 }
 
 function createEnemyBase() {
-    enemyBaseImage = new PIXI.Sprite.from("images/baza.png");
+    enemyBaseImage = new PIXI.Sprite.from("images/enemyBase.png");
     enemyBaseImage.anchor.set(0.5);
     enemyBaseImage.x = enemyBase.x - enemyBase.baseSize / 2;
     enemyBaseImage.y = enemyBase.y - enemyBase.baseSize / 2;
@@ -260,7 +266,6 @@ function createBasesHealthBars(playerBase, enemyBase) {
 
 function movePlayerSoldiers() {
     for (let i = 0; i < playerSoldiers.length; i++) {
-        console.log(playerSoldiers.length);
         let collisionWithEnemyBase =
             playerSoldiers[i].sprite.x >= app.view.width - 110;
         let collisionWithAnotherPlayerSoldier =
@@ -324,7 +329,7 @@ function moveEnemySoldiers() {
             setTimeout(() => {
                 enemySoldiers[i].attack(playerBase);
                 enemySoldiers[i].attacking = false;
-            }, 1000);
+            }, 1005);
         } else if (
             collisionWithPlayerSoldier.bool &&
             !enemySoldiers[i].attacking
@@ -335,7 +340,7 @@ function moveEnemySoldiers() {
                     playerSoldiers[collisionWithPlayerSoldier.which]
                 );
                 enemySoldiers[i].attacking = false;
-            }, 1000);
+            }, 1005);
         }
     }
 }
