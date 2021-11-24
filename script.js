@@ -3,10 +3,14 @@ class Soldier {
         let soldier;
 
         if (who === "player") {
-            soldier = PIXI.Sprite.from("images/playerSoldier.png");
+            soldier = new PIXI.AnimatedSprite(playerSheet.move);
             soldier.anchor.set(0.5);
+            soldier.animationSpeed = 0.3;
+            soldier.loop = true;
             soldier.x = 50;
-            soldier.y = app.view.height - 22.5;
+            soldier.y = app.view.height - 17;
+            soldier.play();
+            app.stage.addChild(soldier);
 
             playerSoldiers.push({
                 sprite: soldier,
@@ -16,11 +20,14 @@ class Soldier {
                 health: 30,
             });
         } else if (who === "enemy") {
-            soldier = PIXI.Sprite.from("images/enemySoldier.png");
+            soldier = new PIXI.AnimatedSprite(enemySheet.move);
             soldier.anchor.set(0.5);
+            soldier.animationSpeed = 0.4;
+            soldier.loop = true;
             soldier.x = app.view.width - 50;
-            soldier.y = app.view.height - 22.5;
-
+            soldier.y = app.view.height - 20;
+            soldier.play();
+            app.stage.addChild(soldier);
             enemySoldiers.push({
                 sprite: soldier,
                 attack: this.attack,
@@ -45,15 +52,28 @@ let enemySoldiers = [];
 let playerBase = {};
 let enemyBase = {};
 let gold = 500;
-let soldierCost = 100;
+let soldierCost = 15;
 let goldInfo;
+let playerSheet = {};
+let enemySheet = {};
+let background;
 
 app = new PIXI.Application({
     width: 1000,
     height: 500,
 });
 
-let background = PIXI.Sprite.from("images/background.png");
+app.loader.add("playerMove", "images/playerMove.png");
+app.loader.add("playerAttack", "images/playerAttack.png");
+app.loader.add("enemyMove", "images/enemyMove.png");
+app.loader.add("enemyAttack", "images/enemyAttack.png");
+app.loader.add("background", "images/background.png");
+app.loader.load(doneLoading);
+//if(!player.playing) - to żeby nie ładowało animacji od początku
+//player.textures = playerSheet.walkNorth - podmiana textury
+//player.play() - trzeba ją odpalić potem
+
+background = PIXI.Sprite.from(app.loader.resources["background"].url);
 background.anchor.set(0.5);
 background.x = app.view.width / 2;
 background.y = app.view.height / 2;
@@ -85,7 +105,79 @@ createButton(50, 50, 50, 50, createPlayerSoldier);
 createButton(110, 50, 50, 50, createEnemySoldier);
 createBasesHealthBars(playerBase, enemyBase);
 
-app.ticker.add(gameLoop);
+function doneLoading() {
+    createPlayerSheet();
+    createEnemySheet();
+    app.ticker.add(gameLoop);
+}
+
+function createPlayerSheet() {
+    let sheet = new PIXI.BaseTexture.from(
+        app.loader.resources["playerMove"].url
+    );
+    let w = 32;
+    let h = 32;
+    playerSheet["move"] = [
+        new PIXI.Texture(sheet, new PIXI.Rectangle(0 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(1 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(2 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(3 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(4 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(5 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(6 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(7 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(8 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(9 * w, 0, w, h)),
+    ];
+
+    sheet = new PIXI.BaseTexture.from(app.loader.resources["playerAttack"].url);
+    playerSheet["attack"] = [
+        new PIXI.Texture(sheet, new PIXI.Rectangle(0 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(1 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(2 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(3 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(4 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(5 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(6 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(7 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(8 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(9 * w, 0, w, h)),
+    ];
+}
+
+function createEnemySheet() {
+    let sheet = new PIXI.BaseTexture.from(
+        app.loader.resources["enemyMove"].url
+    );
+    let w = 48;
+    let h = 38;
+    enemySheet["move"] = [
+        new PIXI.Texture(sheet, new PIXI.Rectangle(0 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(1 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(2 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(3 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(4 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(5 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(6 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(7 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(8 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(9 * w, 0, w, h)),
+    ];
+
+    sheet = new PIXI.BaseTexture.from(app.loader.resources["enemyAttack"].url);
+    enemySheet["attack"] = [
+        new PIXI.Texture(sheet, new PIXI.Rectangle(0 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(1 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(2 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(3 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(4 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(5 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(6 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(7 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(8 * w, 0, w, h)),
+        new PIXI.Texture(sheet, new PIXI.Rectangle(9 * w, 0, w, h)),
+    ];
+}
 
 function gameLoop() {
     for (let i = 0; i < playerSoldiers.length; i++) {
@@ -101,7 +193,7 @@ function gameLoop() {
             app.stage.removeChild(enemySoldiers[i].healthBar);
             app.stage.removeChild(enemySoldiers[i].sprite);
             enemySoldiers.splice(i, 1);
-            gold += 133;
+            gold += 133; //dodawać golda w zależoności od zabitego przeciwnika
         }
     }
 
@@ -211,13 +303,13 @@ function createSoldierHealthBar(player) {
     player.healthBar = new PIXI.Graphics();
 
     player.healthBar.beginFill(0xff0000);
-    player.healthBar.drawRect(player.sprite.x - 5, player.sprite.y - 32, 10, 5);
+    player.healthBar.drawRect(player.sprite.x - 5, player.sprite.y - 24, 10, 5);
     app.stage.addChild(player.healthBar);
 
     player.healthBar.beginFill(0x00ff00);
     player.healthBar.drawRect(
         player.sprite.x - 5,
-        player.sprite.y - 32,
+        player.sprite.y - 24,
         (player.healthPoints / player.health) * 10,
         5
     );
@@ -283,23 +375,36 @@ function movePlayerSoldiers() {
             !collisionWithAnotherPlayerSoldier &&
             !collisionWithEnemySoldier.bool
         ) {
-            playerSoldiers[i].sprite.x += 5;
+            playerSoldiers[i].sprite.x += 2;
+            if (!playerSoldiers[i].sprite.playing) {
+                playerSoldiers[i].sprite.textures = playerSheet.move;
+                playerSoldiers[i].sprite.animationSpeed = 0.3;
+                playerSoldiers[i].sprite.play();
+            }
         } else if (collisionWithEnemyBase && !playerSoldiers[i].attacking) {
             playerSoldiers[i].attacking = true;
+            playerSoldiers[i].sprite.textures = playerSheet.attack;
+            playerSoldiers[i].sprite.animationSpeed = 0.1;
+            playerSoldiers[i].sprite.play();
             setTimeout(() => {
                 playerSoldiers[i].attack(enemyBase);
                 playerSoldiers[i].attacking = false;
+                playerSoldiers[i].sprite.stop();
             }, 1000);
         } else if (
             collisionWithEnemySoldier.bool &&
             !playerSoldiers[i].attacking
         ) {
             playerSoldiers[i].attacking = true;
+            playerSoldiers[i].sprite.textures = playerSheet.attack;
+            playerSoldiers[i].sprite.animationSpeed = 0.1;
+            playerSoldiers[i].sprite.play();
             setTimeout(() => {
                 playerSoldiers[i].attack(
                     enemySoldiers[collisionWithEnemySoldier.which]
                 );
                 playerSoldiers[i].attacking = false;
+                playerSoldiers[i].sprite.stop();
             }, 1000);
         }
     }
@@ -323,52 +428,40 @@ function moveEnemySoldiers() {
             !collisionWithAnotherEnemySoldier &&
             !collisionWithPlayerSoldier.bool
         ) {
-            enemySoldiers[i].sprite.x -= 5;
+            enemySoldiers[i].sprite.x -= 2;
+            if (!enemySoldiers[i].sprite.playing) {
+                enemySoldiers[i].sprite.textures = enemySheet.move;
+                enemySoldiers[i].sprite.animationSpeed = 0.4;
+                enemySoldiers[i].sprite.play();
+            }
         } else if (collisionWithPlayerBase && !enemySoldiers[i].attacking) {
             enemySoldiers[i].attacking = true;
+            enemySoldiers[i].sprite.textures = enemySheet.attack;
+            enemySoldiers[i].sprite.animationSpeed = 0.1;
+            enemySoldiers[i].sprite.play();
             setTimeout(() => {
                 enemySoldiers[i].attack(playerBase);
                 enemySoldiers[i].attacking = false;
+                enemySoldiers[i].sprite.stop();
             }, 1005);
         } else if (
             collisionWithPlayerSoldier.bool &&
             !enemySoldiers[i].attacking
         ) {
             enemySoldiers[i].attacking = true;
+            enemySoldiers[i].sprite.textures = enemySheet.attack;
+            enemySoldiers[i].sprite.animationSpeed = 0.1;
+            enemySoldiers[i].sprite.play();
             setTimeout(() => {
                 enemySoldiers[i].attack(
                     playerSoldiers[collisionWithPlayerSoldier.which]
                 );
                 enemySoldiers[i].attacking = false;
+                enemySoldiers[i].sprite.stop();
             }, 1005);
         }
     }
 }
-
-// function attack() {
-//     for (let i = 0; i < playerSoldiers.length; i++) {
-//         if (
-//             !playerSoldiers[i].attacking &&
-//             playerSoldiers[i].sprite.x >= app.view.width - 110
-//         ) {
-//             playerSoldiers[i].attacking = true;
-//             setTimeout(() => {
-//                 playerSoldiers[i].attack(enemyBase);
-//                 playerSoldiers[i].attacking = false;
-//             }, 1000);
-//         }
-//     }
-
-//     for (let i = 0; i < enemySoldiers.length; i++) {
-//         if (!enemySoldiers[i].attacking && enemySoldiers[i].sprite.x <= 110) {
-//             enemySoldiers[i].attacking = true;
-//             setTimeout(() => {
-//                 enemySoldiers[i].attack(playerBase);
-//                 enemySoldiers[i].attacking = false;
-//             }, 1000);
-//         }
-//     }
-// }
 
 function createPlayerSoldier() {
     if (gold >= soldierCost) {
