@@ -1,53 +1,3 @@
-let app;
-let playerSoldiers = [];
-let enemySoldiers = [];
-let playerBase = {};
-let enemyBase = {};
-let playerGold = 1000;
-let enemyGold = 1000;
-let playerSoldierCost = 10;
-let playerStrongSoldierCost = 10;
-let enemySoldierCost = 10;
-let enemyStrongSoldierCost = 10;
-let goldInfo;
-let coinImage;
-let playerSheet = {};
-let enemySheet = {};
-let background;
-let computerMakesMove = true;
-
-let song = document.getElementById("mySong");
-
-app = new PIXI.Application({
-    width: 1000,
-    height: 500,
-});
-
-loading();
-
-document.querySelector("#game").appendChild(app.view);
-app.stage.interactive = true;
-
-document.querySelector("#game").onclick = function () {
-    // song.play();
-};
-
-playerBase = {
-    x: 0,
-    y: app.view.height,
-    baseSize: 100,
-    healthPoints: 100,
-    health: 100,
-};
-
-enemyBase = {
-    x: app.view.width,
-    y: app.view.height,
-    baseSize: 100,
-    healthPoints: 100,
-    health: 100,
-};
-
 class Soldier {
     constructor(who) {
         let soldier;
@@ -60,7 +10,7 @@ class Soldier {
             soldier.x = 50;
             soldier.y = app.view.height - 17;
             soldier.play();
-            app.stage.addChild(soldier);
+            gameScreen.screen.addChild(soldier);
 
             playerSoldiers.push({
                 type: "normal",
@@ -79,7 +29,7 @@ class Soldier {
             soldier.x = app.view.width - 50;
             soldier.y = app.view.height - 20;
             soldier.play();
-            app.stage.addChild(soldier);
+            gameScreen.screen.addChild(soldier);
             enemySoldiers.push({
                 type: "normal",
                 sprite: soldier,
@@ -91,7 +41,7 @@ class Soldier {
             });
         }
 
-        app.stage.addChild(soldier);
+        gameScreen.screen.addChild(soldier);
     }
 
     attack(object) {
@@ -112,7 +62,7 @@ class StrongSoldier {
             soldier.x = 50;
             soldier.y = app.view.height - 33;
             soldier.play();
-            app.stage.addChild(soldier);
+            gameScreen.screen.addChild(soldier);
 
             playerSoldiers.push({
                 type: "strong",
@@ -131,7 +81,7 @@ class StrongSoldier {
             soldier.x = app.view.width - 50;
             soldier.y = app.view.height - 20;
             soldier.play();
-            app.stage.addChild(soldier);
+            gameScreen.screen.addChild(soldier);
             enemySoldiers.push({
                 type: "strong",
                 sprite: soldier,
@@ -143,7 +93,7 @@ class StrongSoldier {
             });
         }
 
-        app.stage.addChild(soldier);
+        gameScreen.screen.addChild(soldier);
     }
 
     attack(object) {
@@ -152,48 +102,179 @@ class StrongSoldier {
     }
 }
 
-function doneLoading() {
-    createPlayerSheet();
-    createEnemySheet();
-    drawBackground();
-    createPlayerBase();
-    createEnemyBase();
-    showGoldImage();
-    showGoldInfo();
-    createButton(
-        120,
-        50,
-        32,
-        32,
-        createPlayerSoldier,
-        app.loader.resources["playerSoldierIcon"].url
-    );
-    createButton(
-        162,
-        50,
-        32,
-        32,
-        createPlayerStrongSoldier,
-        app.loader.resources["playerStrongSoldierIcon"].url
-    );
-    createButton(
-        570,
-        50,
-        50,
-        50,
-        createEnemySoldier,
-        app.loader.resources["enemySoldierIcon"].url
-    );
-    createButton(
-        630,
-        50,
-        50,
-        50,
-        createEnemyStrongSoldier,
-        app.loader.resources["enemyStrongSoldierIcon"].url
-    );
-    createBasesHealthBars(playerBase, enemyBase);
-    app.ticker.add(gameLoop);
+let app;
+let playerSoldiers;
+let enemySoldiers;
+let playerBase;
+let enemyBase;
+let playerGold;
+let enemyGold;
+let playerSoldierCost;
+let playerStrongSoldierCost;
+let enemySoldierCost;
+let enemyStrongSoldierCost;
+let goldInfo;
+let coinImage;
+let playerSheet = {};
+let enemySheet = {};
+let background;
+let computerMakesMove;
+let elapsedTime = 0;
+let difficultyLevel;
+let winner;
+
+let menuScreen = { alreadyDrawn: false };
+let settingsScreen = { alreadyDrawn: false };
+let gameScreen = { alreadyDrawn: false };
+let endGameScreen = { alreadyDrawn: false };
+
+let song = document.getElementById("mySong");
+
+app = new PIXI.Application({
+    width: 1000,
+    height: 500,
+    backgroundColor: 0x1e1e1e,
+});
+
+document.querySelector("#game").appendChild(app.view);
+app.stage.interactive = true;
+document.querySelector("#game").onclick = function () {
+    // song.play();
+};
+
+menuScreen.screen = new PIXI.Container();
+settingsScreen.screen = new PIXI.Container();
+gameScreen.screen = new PIXI.Container();
+endGameScreen.screen = new PIXI.Container();
+
+settingsScreen.screen.visible = false;
+gameScreen.screen.visible = false;
+endGameScreen.screen.visible = false;
+
+app.stage.addChild(menuScreen.screen);
+app.stage.addChild(settingsScreen.screen);
+app.stage.addChild(gameScreen.screen);
+app.stage.addChild(endGameScreen.screen);
+
+loading();
+
+function drawSettingsScreen() {
+    drawBackground(settingsScreen);
+    drawText(settingsScreen);
+    drawSettingsButtons();
+    settingsScreen.alreadyDrawn = true;
+}
+
+function drawSettingsButtons() {
+    //easy difficulty level button
+    let button = new PIXI.Text("EASY");
+    button.anchor.set(0.5);
+    button.x = app.view.width / 2;
+    button.y = (app.view.height / 15) * 9;
+    button.style = new PIXI.TextStyle({
+        fill: 0xffffff,
+        fontSize: 40,
+    });
+    button.interactive = true;
+    button.buttonMode = true;
+    button.on("pointerdown", () => {
+        difficultyLevel = "easy";
+        gameInit(difficultyLevel);
+        switchScreens(gameScreen, settingsScreen);
+    });
+    settingsScreen.screen.addChild(button);
+
+    //medium difficulty level button
+    button = new PIXI.Text("MEDIUM");
+    button.anchor.set(0.5);
+    button.x = app.view.width / 2;
+    button.y = (app.view.height / 15) * 11;
+    button.style = new PIXI.TextStyle({
+        fill: 0xffffff,
+        fontSize: 40,
+    });
+    button.interactive = true;
+    button.buttonMode = true;
+    button.on("pointerdown", () => {
+        difficultyLevel = "medium";
+        gameInit(difficultyLevel);
+        switchScreens(gameScreen, settingsScreen);
+    });
+    settingsScreen.screen.addChild(button);
+
+    //hard difficulty level button
+    button = new PIXI.Text("HARD");
+    button.anchor.set(0.5);
+    button.x = app.view.width / 2;
+    button.y = (app.view.height / 15) * 13;
+    button.style = new PIXI.TextStyle({
+        fill: 0xffffff,
+        fontSize: 40,
+    });
+    button.interactive = true;
+    button.buttonMode = true;
+    button.on("pointerdown", () => {
+        difficultyLevel = "hard";
+        gameInit(difficultyLevel);
+        switchScreens(gameScreen, settingsScreen);
+    });
+    settingsScreen.screen.addChild(button);
+}
+
+function drawMenuScreen() {
+    drawBackground(menuScreen);
+    drawText(menuScreen);
+    drawMenuButton();
+    menuScreen.alreadyDrawn = true;
+}
+
+function drawMenuButton() {
+    let button = new PIXI.Text("PLAY");
+    button.anchor.set(0.5);
+    button.x = app.view.width / 2;
+    button.y = (app.view.height / 3) * 2;
+    button.style = new PIXI.TextStyle({
+        fill: 0xffffff,
+        fontSize: 40,
+    });
+    button.interactive = true;
+    button.buttonMode = true;
+    button.on("pointerdown", () => switchScreens(settingsScreen, menuScreen));
+    menuScreen.screen.addChild(button);
+}
+
+function drawText(where) {
+    let text = new PIXI.Text("AGE OF WAR");
+    text.x = app.view.width / 2;
+    text.y = app.view.height / 4;
+    text.anchor.set(0.5);
+    text.style = new PIXI.TextStyle({
+        fill: 0xffd700,
+        fontSize: 70,
+    });
+    where.screen.addChild(text);
+}
+
+function drawBackground(where) {
+    background = PIXI.Sprite.from(app.loader.resources["menuBackground"].url);
+    background.anchor.set(0.5);
+    background.x = app.view.width / 2;
+    background.y = app.view.height / 2;
+    where.screen.addChild(background);
+}
+
+function switchScreens(which, whichNot) {
+    which.screen.visible = true;
+    whichNot.screen.visible = false;
+    whichNot.alreadyDrawn = false;
+}
+
+function drawGameBackground() {
+    background = PIXI.Sprite.from(app.loader.resources["background"].url);
+    background.anchor.set(0.5);
+    background.x = app.view.width / 2;
+    background.y = app.view.height / 2;
+    gameScreen.screen.addChild(background);
 }
 
 function loading() {
@@ -247,9 +328,148 @@ function loading() {
 
     //loading the rest of needed images
     app.loader.add("background", "images/background.png");
+    app.loader.add("menuBackground", "images/menuBackground.png");
     app.loader.add("coin", "images/goldCoinIcon.png");
 
+    createPlayerSheet();
+    createEnemySheet();
+
     app.loader.load(doneLoading);
+}
+
+function doneLoading() {
+    app.ticker.add(gameLoop);
+}
+
+function gameInit(difficultyLevel) {
+    playerBase = {
+        x: 0,
+        y: app.view.height,
+        baseSize: 100,
+        healthPoints: 100,
+        health: 100,
+    };
+    enemyBase = {
+        x: app.view.width,
+        y: app.view.height,
+        baseSize: 100,
+        healthPoints: 100,
+        health: 100,
+    };
+
+    playerSoldiers = [];
+    enemySoldiers = [];
+    computerMakesMove = true;
+    winner = "nobody";
+
+    if (difficultyLevel === "easy") {
+        playerGold = 300;
+        enemyGold = 100;
+        playerSoldierCost = 10;
+        playerStrongSoldierCost = 30;
+        enemySoldierCost = 15;
+        enemyStrongSoldierCost = 35;
+    } else if (difficultyLevel === "medium") {
+        playerGold = 200;
+        enemyGold = 200;
+        playerSoldierCost = 10;
+        playerStrongSoldierCost = 30;
+        enemySoldierCost = 10;
+        enemyStrongSoldierCost = 30;
+    } else if (difficultyLevel === "hard") {
+        playerGold = 100;
+        enemyGold = 300;
+        playerSoldierCost = 10;
+        playerStrongSoldierCost = 30;
+        enemySoldierCost = 10;
+        enemyStrongSoldierCost = 30;
+    }
+
+    drawGameBackground();
+    drawPlayerBase();
+    drawEnemyBase();
+    drawGoldImage();
+    drawGoldInfo();
+    drawGameButton(
+        120,
+        50,
+        32,
+        32,
+        createPlayerSoldier,
+        app.loader.resources["playerSoldierIcon"].url
+    );
+    drawGameButton(
+        162,
+        50,
+        32,
+        32,
+        createPlayerStrongSoldier,
+        app.loader.resources["playerStrongSoldierIcon"].url
+    );
+    drawGameButton(
+        570,
+        50,
+        50,
+        50,
+        createEnemySoldier,
+        app.loader.resources["enemySoldierIcon"].url
+    );
+    drawGameButton(
+        630,
+        50,
+        50,
+        50,
+        createEnemyStrongSoldier,
+        app.loader.resources["enemyStrongSoldierIcon"].url
+    );
+    createBasesHealthBars(playerBase, enemyBase);
+}
+
+function gameLoop() {
+    if (menuScreen.screen.visible && !menuScreen.alreadyDrawn) {
+        drawMenuScreen();
+    } else if (settingsScreen.screen.visible && !settingsScreen.alreadyDrawn) {
+        drawSettingsScreen();
+    } else if (gameScreen.screen.visible) {
+        for (let i = 0; i < playerSoldiers.length; i++) {
+            if (playerSoldiers[i].healthPoints <= 0) {
+                gameScreen.screen.removeChild(playerSoldiers[i].healthBar);
+                gameScreen.screen.removeChild(playerSoldiers[i].sprite);
+                playerSoldiers.splice(i, 1);
+                enemyGold += 20;
+            }
+        }
+
+        for (let i = 0; i < enemySoldiers.length; i++) {
+            if (enemySoldiers[i].healthPoints <= 0) {
+                gameScreen.screen.removeChild(enemySoldiers[i].healthBar);
+                gameScreen.screen.removeChild(enemySoldiers[i].sprite);
+                enemySoldiers.splice(i, 1);
+                playerGold += 20;
+            }
+        }
+
+        artificialIntelligence();
+        movePlayerSoldiers();
+        moveEnemySoldiers();
+
+        for (let i = 0; i < playerSoldiers.length; i++) {
+            createSoldierHealthBar(playerSoldiers[i]);
+        }
+
+        for (let i = 0; i < enemySoldiers.length; i++) {
+            createSoldierHealthBar(enemySoldiers[i]);
+        }
+
+        createBasesHealthBars(playerBase, enemyBase);
+        drawGoldInfo();
+        isGameOver();
+    } else if (endGameScreen.screen.visible && !endGameScreen.alreadyDrawn) {
+        drawEndGameScreen(winner);
+        setTimeout(() => {
+            switchScreens(menuScreen, endGameScreen);
+        }, 2000);
+    }
 }
 
 function artificialIntelligence() {
@@ -271,56 +491,21 @@ function artificialIntelligence() {
     // }
 }
 
-function gameLoop() {
-    for (let i = 0; i < playerSoldiers.length; i++) {
-        if (playerSoldiers[i].healthPoints <= 0) {
-            app.stage.removeChild(playerSoldiers[i].healthBar);
-            app.stage.removeChild(playerSoldiers[i].sprite);
-            playerSoldiers.splice(i, 1);
-            enemyGold += 20;
-        }
-    }
-
-    for (let i = 0; i < enemySoldiers.length; i++) {
-        if (enemySoldiers[i].healthPoints <= 0) {
-            app.stage.removeChild(enemySoldiers[i].healthBar);
-            app.stage.removeChild(enemySoldiers[i].sprite);
-            enemySoldiers.splice(i, 1);
-            playerGold += 20;
-        }
-    }
-
-    artificialIntelligence();
-    movePlayerSoldiers();
-    moveEnemySoldiers();
-
-    for (let i = 0; i < playerSoldiers.length; i++) {
-        createSoldierHealthBar(playerSoldiers[i]);
-    }
-
-    for (let i = 0; i < enemySoldiers.length; i++) {
-        createSoldierHealthBar(enemySoldiers[i]);
-    }
-
-    createBasesHealthBars(playerBase, enemyBase);
-
-    showGoldInfo();
-    isGameOver();
-}
-
 function isGameOver() {
     if (playerBase.healthPoints <= 0) {
-        //cleanBoard();
-        drawEndScreen("Enemy wygrywa!");
+        cleanBoardAfterGame();
+        winner = "You lose!";
+        switchScreens(endGameScreen, gameScreen);
     }
     if (enemyBase.healthPoints <= 0) {
-        //cleanBoard();
-        drawEndScreen("Player wygrywa!");
+        cleanBoardAfterGame();
+        winner = "You won!";
+        switchScreens(endGameScreen, gameScreen);
     }
 }
 
-function showGoldInfo() {
-    app.stage.removeChild(goldInfo);
+function drawGoldInfo() {
+    gameScreen.screen.removeChild(goldInfo);
 
     goldInfo = new PIXI.Text(playerGold);
     goldInfo.x = 75;
@@ -330,22 +515,38 @@ function showGoldInfo() {
         fill: 0xffd700,
         fontSize: 16,
     });
-    app.stage.addChild(goldInfo);
+    gameScreen.screen.addChild(goldInfo);
 }
 
-function showGoldImage() {
+function drawGoldImage() {
     coinImage = new PIXI.Sprite.from(app.loader.resources["coin"].url);
     coinImage.anchor.set(0.5);
     coinImage.x = 50;
     coinImage.y = 65;
-    app.stage.addChild(coinImage);
+    gameScreen.screen.addChild(coinImage);
 }
 
-function drawEndScreen(text) {
-    let endScreen = new PIXI.Graphics();
-    endScreen.beginFill(0x000000);
-    endScreen.drawRect(0, 0, app.stage.width, app.stage.height);
-    app.stage.addChild(endScreen);
+function drawPlayerBase() {
+    playerBase.playerBaseImage = new PIXI.Sprite.from("images/playerBase.png");
+    playerBase.playerBaseImage.anchor.set(0.5);
+    playerBase.playerBaseImage.x = playerBase.x + playerBase.baseSize / 2;
+    playerBase.playerBaseImage.y = playerBase.y - playerBase.baseSize / 2;
+    gameScreen.screen.addChild(playerBase.playerBaseImage);
+}
+
+function drawEnemyBase() {
+    enemyBaseImage = new PIXI.Sprite.from("images/enemyBase.png");
+    enemyBaseImage.anchor.set(0.5);
+    enemyBaseImage.x = enemyBase.x - enemyBase.baseSize / 2;
+    enemyBaseImage.y = enemyBase.y - enemyBase.baseSize / 2;
+    gameScreen.screen.addChild(enemyBaseImage);
+}
+
+function drawEndGameScreen(text) {
+    let end = new PIXI.Graphics();
+    end.beginFill(0x000000);
+    end.drawRect(0, 0, app.view.width, app.view.height);
+    endGameScreen.screen.addChild(end);
 
     endText = new PIXI.Text(text);
     endText.x = app.view.width / 2;
@@ -355,34 +556,11 @@ function drawEndScreen(text) {
         fill: 0xffffff,
         fontSize: 40,
     });
-    app.stage.addChild(endText);
+    endGameScreen.alreadyDrawn = true;
+    endGameScreen.screen.addChild(endText);
 }
 
-function drawBackground() {
-    background = PIXI.Sprite.from(app.loader.resources["background"].url);
-    background.anchor.set(0.5);
-    background.x = app.view.width / 2;
-    background.y = app.view.height / 2;
-    app.stage.addChild(background);
-}
-
-function createPlayerBase() {
-    playerBase.playerBaseImage = new PIXI.Sprite.from("images/playerBase.png");
-    playerBase.playerBaseImage.anchor.set(0.5);
-    playerBase.playerBaseImage.x = playerBase.x + playerBase.baseSize / 2;
-    playerBase.playerBaseImage.y = playerBase.y - playerBase.baseSize / 2;
-    app.stage.addChild(playerBase.playerBaseImage);
-}
-
-function createEnemyBase() {
-    enemyBaseImage = new PIXI.Sprite.from("images/enemyBase.png");
-    enemyBaseImage.anchor.set(0.5);
-    enemyBaseImage.x = enemyBase.x - enemyBase.baseSize / 2;
-    enemyBaseImage.y = enemyBase.y - enemyBase.baseSize / 2;
-    app.stage.addChild(enemyBaseImage);
-}
-
-function createButton(x, y, width, height, functionality, image) {
+function drawGameButton(x, y, width, height, functionality, image) {
     let button = new PIXI.Sprite.from(image);
     button.anchor.set(0.5);
     button.x = x + width / 2;
@@ -390,17 +568,17 @@ function createButton(x, y, width, height, functionality, image) {
     button.interactive = true;
     button.buttonMode = true;
     button.on("pointerdown", functionality);
-    app.stage.addChild(button);
+    gameScreen.screen.addChild(button);
 }
 
 function createSoldierHealthBar(player) {
-    app.stage.removeChild(player.healthBar);
+    gameScreen.screen.removeChild(player.healthBar);
 
     player.healthBar = new PIXI.Graphics();
 
     player.healthBar.beginFill(0xff0000);
     player.healthBar.drawRect(player.sprite.x - 5, player.sprite.y - 35, 10, 5);
-    app.stage.addChild(player.healthBar);
+    gameScreen.screen.addChild(player.healthBar);
 
     player.healthBar.beginFill(0x00ff00);
     player.healthBar.drawRect(
@@ -409,7 +587,7 @@ function createSoldierHealthBar(player) {
         (player.healthPoints / player.health) * 10,
         5
     );
-    app.stage.addChild(player.healthBar);
+    gameScreen.screen.addChild(player.healthBar);
 }
 
 function createBasesHealthBars(playerBase, enemyBase) {
@@ -422,7 +600,7 @@ function createBasesHealthBars(playerBase, enemyBase) {
         80,
         10
     );
-    app.stage.addChild(healthBar);
+    gameScreen.screen.addChild(healthBar);
 
     healthBar.beginFill(0x00ff00);
     healthBar.drawRect(
@@ -431,7 +609,7 @@ function createBasesHealthBars(playerBase, enemyBase) {
         (playerBase.healthPoints / playerBase.health) * 80,
         10
     );
-    app.stage.addChild(healthBar);
+    gameScreen.screen.addChild(healthBar);
 
     healthBar.beginFill(0xff0000);
     healthBar.drawRect(
@@ -440,7 +618,7 @@ function createBasesHealthBars(playerBase, enemyBase) {
         80,
         10
     );
-    app.stage.addChild(healthBar);
+    gameScreen.screen.addChild(healthBar);
 
     healthBar.beginFill(0x00ff00);
     healthBar.drawRect(
@@ -449,7 +627,7 @@ function createBasesHealthBars(playerBase, enemyBase) {
         (enemyBase.healthPoints / enemyBase.health) * 80,
         10
     );
-    app.stage.addChild(healthBar);
+    gameScreen.screen.addChild(healthBar);
 }
 
 function movePlayerSoldiers() {
@@ -608,6 +786,26 @@ function moveEnemySoldiers() {
     }
 }
 
+function cleanBoardAfterGame() {
+    for (let i = 0; i < playerSoldiers.length; i++) {
+        gameScreen.screen.removeChild(playerSoldiers[i].healthBar);
+        gameScreen.screen.removeChild(playerSoldiers[i].sprite);
+        playerSoldiers.splice(i, 1);
+    }
+
+    for (let i = 0; i < enemySoldiers.length; i++) {
+        gameScreen.screen.removeChild(enemySoldiers[i].healthBar);
+        gameScreen.screen.removeChild(enemySoldiers[i].sprite);
+        enemySoldiers.splice(i, 1);
+    }
+
+    gameScreen.screen.removeChild(playerBase.playerBaseImage);
+    gameScreen.screen.removeChild(enemyBase.enemyBaseImage);
+
+    playerBase = {};
+    enemyBase = {};
+}
+
 function createPlayerSoldier() {
     if (playerGold >= playerSoldierCost) {
         new Soldier("player");
@@ -635,22 +833,6 @@ function createEnemyStrongSoldier() {
         enemyGold -= enemyStrongSoldierCost;
     }
 }
-
-// function cleanBoard() {
-//     for (let i = 0; i < playerSoldiers.length; i++) {
-//         app.stage.removeChild(playerSoldiers[i].healthBar);
-//         app.stage.removeChild(playerSoldiers[i].sprite);
-//         playerSoldiers.splice(i, 1);
-//     }
-
-//     for (let i = 0; i < enemySoldiers.length; i++) {
-//         app.stage.removeChild(enemySoldiers[i].healthBar);
-//         app.stage.removeChild(enemySoldiers[i].sprite);
-//         enemySoldiers.splice(i, 1);
-//     }
-
-//     app.stage.removeChild(playerBase.playerBaseImage);
-// }
 
 function createPlayerSheet() {
     let sheet = new PIXI.BaseTexture.from(
@@ -972,12 +1154,6 @@ function createEnemySheet() {
 //         new PIXI.Texture(player, new PIXI.Rectangle(1 * w, 0, w, h)),
 //         new PIXI.Texture(player, new PIXI.Rectangle(2 * w, 0, w, h)),
 //     ];
-// }
-
-// function doneLoading(e) {
-//     createPlayerSheet();
-//     createPlayer();
-//     app.ticker.add(gameLoop);
 // }
 
 // function movePlayer(e) {
