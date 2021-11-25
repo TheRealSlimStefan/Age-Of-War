@@ -45,7 +45,7 @@ class Soldier {
     }
 
     attack(object) {
-        let randomDamage = Math.floor(Math.random() * (20 - 10)) + 10;
+        let randomDamage = Math.floor(Math.random() * (25 - 15)) + 15;
         if (object.healthPoints > 0) object.healthPoints -= randomDamage;
     }
 }
@@ -69,8 +69,8 @@ class StrongSoldier {
                 sprite: soldier,
                 attack: this.attack,
                 attacking: false,
-                healthPoints: 50,
-                health: 50,
+                healthPoints: 120,
+                health: 120,
                 soldierSize: 64,
             });
         } else if (who === "enemy") {
@@ -87,8 +87,8 @@ class StrongSoldier {
                 sprite: soldier,
                 attack: this.attack,
                 attacking: false,
-                healthPoints: 50,
-                health: 50,
+                healthPoints: 120,
+                health: 120,
                 soldierSize: 48,
             });
         }
@@ -97,7 +97,7 @@ class StrongSoldier {
     }
 
     attack(object) {
-        let randomDamage = Math.floor(Math.random() * (50 - 25)) + 25;
+        let randomDamage = Math.floor(Math.random() * (40 - 25)) + 25;
         if (object.healthPoints > 0) object.healthPoints -= randomDamage;
     }
 }
@@ -139,7 +139,7 @@ app = new PIXI.Application({
 document.querySelector("#game").appendChild(app.view);
 app.stage.interactive = true;
 document.querySelector("#game").onclick = function () {
-    // song.play();
+    song.play();
 };
 
 menuScreen.screen = new PIXI.Container();
@@ -346,15 +346,15 @@ function gameInit(difficultyLevel) {
         x: 0,
         y: app.view.height,
         baseSize: 100,
-        healthPoints: 100,
-        health: 100,
+        healthPoints: 500,
+        health: 500,
     };
     enemyBase = {
         x: app.view.width,
         y: app.view.height,
         baseSize: 100,
-        healthPoints: 100,
-        health: 100,
+        healthPoints: 500,
+        health: 500,
     };
 
     playerSoldiers = [];
@@ -363,26 +363,26 @@ function gameInit(difficultyLevel) {
     winner = "nobody";
 
     if (difficultyLevel === "easy") {
-        playerGold = 300;
-        enemyGold = 100;
-        playerSoldierCost = 10;
-        playerStrongSoldierCost = 30;
+        playerGold = 50;
+        enemyGold = 50;
+        playerSoldierCost = 15;
+        playerStrongSoldierCost = 60;
         enemySoldierCost = 15;
-        enemyStrongSoldierCost = 35;
+        enemyStrongSoldierCost = 60;
     } else if (difficultyLevel === "medium") {
-        playerGold = 200;
-        enemyGold = 200;
-        playerSoldierCost = 10;
-        playerStrongSoldierCost = 30;
-        enemySoldierCost = 10;
-        enemyStrongSoldierCost = 30;
+        playerGold = 50;
+        enemyGold = 50;
+        playerSoldierCost = 15;
+        playerStrongSoldierCost = 60;
+        enemySoldierCost = 15;
+        enemyStrongSoldierCost = 60;
     } else if (difficultyLevel === "hard") {
-        playerGold = 100;
-        enemyGold = 300;
-        playerSoldierCost = 10;
-        playerStrongSoldierCost = 30;
-        enemySoldierCost = 10;
-        enemyStrongSoldierCost = 30;
+        playerGold = 50;
+        enemyGold = 50;
+        playerSoldierCost = 15;
+        playerStrongSoldierCost = 60;
+        enemySoldierCost = 15;
+        enemyStrongSoldierCost = 60;
     }
 
     drawGameBackground();
@@ -406,22 +406,22 @@ function gameInit(difficultyLevel) {
         createPlayerStrongSoldier,
         app.loader.resources["playerStrongSoldierIcon"].url
     );
-    drawGameButton(
-        570,
-        50,
-        50,
-        50,
-        createEnemySoldier,
-        app.loader.resources["enemySoldierIcon"].url
-    );
-    drawGameButton(
-        630,
-        50,
-        50,
-        50,
-        createEnemyStrongSoldier,
-        app.loader.resources["enemyStrongSoldierIcon"].url
-    );
+    // drawGameButton(
+    //     570,
+    //     50,
+    //     50,
+    //     50,
+    //     createEnemySoldier,
+    //     app.loader.resources["enemySoldierIcon"].url
+    // );
+    // drawGameButton(
+    //     630,
+    //     50,
+    //     50,
+    //     50,
+    //     createEnemyStrongSoldier,
+    //     app.loader.resources["enemyStrongSoldierIcon"].url
+    // );
     createBasesHealthBars(playerBase, enemyBase);
 }
 
@@ -431,21 +431,46 @@ function gameLoop() {
     } else if (settingsScreen.screen.visible && !settingsScreen.alreadyDrawn) {
         drawSettingsScreen();
     } else if (gameScreen.screen.visible) {
+        if (playerSoldiers.length == 0 && playerGold < 15) playerGold += 15;
+        if (enemySoldiers.length == 0 && enemyGold < 15) enemyGold += 15;
+
         for (let i = 0; i < playerSoldiers.length; i++) {
-            if (playerSoldiers[i].healthPoints <= 0) {
+            if (
+                playerSoldiers[i].healthPoints <= 0 &&
+                playerSoldiers[i].type == "normal"
+            ) {
                 gameScreen.screen.removeChild(playerSoldiers[i].healthBar);
                 gameScreen.screen.removeChild(playerSoldiers[i].sprite);
                 playerSoldiers.splice(i, 1);
                 enemyGold += 20;
+            } else if (
+                playerSoldiers[i].healthPoints <= 0 &&
+                playerSoldiers[i].type == "strong"
+            ) {
+                gameScreen.screen.removeChild(playerSoldiers[i].healthBar);
+                gameScreen.screen.removeChild(playerSoldiers[i].sprite);
+                playerSoldiers.splice(i, 1);
+                enemyGold += 65;
             }
         }
 
         for (let i = 0; i < enemySoldiers.length; i++) {
-            if (enemySoldiers[i].healthPoints <= 0) {
+            if (
+                enemySoldiers[i].healthPoints <= 0 &&
+                enemySoldiers[i].type == "normal"
+            ) {
                 gameScreen.screen.removeChild(enemySoldiers[i].healthBar);
                 gameScreen.screen.removeChild(enemySoldiers[i].sprite);
                 enemySoldiers.splice(i, 1);
                 playerGold += 20;
+            } else if (
+                enemySoldiers[i].healthPoints <= 0 &&
+                enemySoldiers[i].type == "strong"
+            ) {
+                gameScreen.screen.removeChild(enemySoldiers[i].healthBar);
+                gameScreen.screen.removeChild(enemySoldiers[i].sprite);
+                enemySoldiers.splice(i, 1);
+                playerGold += 65;
             }
         }
 
@@ -473,22 +498,68 @@ function gameLoop() {
 }
 
 function artificialIntelligence() {
-    // let random = Math.floor(Math.random() * (10000 - 1000)) + 1000;
-    // let closeToBase = false;
-    // for (let i = 0; i < playerSoldiers.length; i++) {
-    //     if (playerSoldiers[i].sprite.x >= (app.view.width * 4) / 5) {
-    //         closeToBase = true;
-    //         console.log("Bardzo blisko!");
-    //     }
-    // }
-    // if (computerMakesMove || closeToBase) {
-    //     computerMakesMove = false;
-    //     setTimeout(() => {
-    //         if (enemyGold >= enemySoldierCost) createEnemySoldier();
-    //         computerMakesMove = true;
-    //         closeToBase = false;
-    //     }, random);
-    // }
+    if (difficultyLevel == "easy") {
+        let random = Math.floor(Math.random() * (5000 - 3000)) + 3000;
+        let unit = Math.floor(Math.random() * (10 - 0)) + 0;
+        let amount = Math.floor(Math.random() * (2 - 1)) + 1;
+
+        if (computerMakesMove) {
+            computerMakesMove = false;
+            setTimeout(() => {
+                if (unit % 10 === 0 && enemyGold >= enemyStrongSoldierCost) {
+                    if (enemyGold >= enemyStrongSoldierCost)
+                        createEnemyStrongSoldier();
+                } else if (unit !== 0 && enemyGold >= enemySoldierCost) {
+                    for (let i = 0; i < amount; i++) {
+                        if (enemyGold >= enemySoldierCost) createEnemySoldier();
+                    }
+                }
+                computerMakesMove = true;
+            }, random);
+        }
+    } else if (difficultyLevel == "medium") {
+        let random = Math.floor(Math.random() * (5000 - 2500)) + 2500;
+        let unit = Math.floor(Math.random() * (10 - 0)) + 0;
+        let amount = Math.floor(Math.random() * (1 - 1)) + 1;
+
+        if (computerMakesMove) {
+            computerMakesMove = false;
+            setTimeout(() => {
+                console.log(unit, random, enemyGold);
+
+                if (unit % 9 === 0 && enemyGold >= enemyStrongSoldierCost) {
+                    if (enemyGold >= enemyStrongSoldierCost)
+                        createEnemyStrongSoldier();
+                } else if (unit % 9 !== 0 && enemyGold >= enemySoldierCost) {
+                    for (let i = 0; i < amount; i++) {
+                        if (enemyGold >= enemySoldierCost) createEnemySoldier();
+                    }
+                }
+                computerMakesMove = true;
+            }, random);
+        }
+    } else if (difficultyLevel == "hard") {
+        let random = Math.floor(Math.random() * (4500 - 2500)) + 2500;
+        let unit = Math.floor(Math.random() * (10 - 0)) + 0;
+        let amount = Math.floor(Math.random() * (3 - 1)) + 1;
+
+        if (computerMakesMove) {
+            computerMakesMove = false;
+            setTimeout(() => {
+                console.log(unit, random, enemyGold);
+
+                if (unit % 4 === 0 && enemyGold >= enemyStrongSoldierCost) {
+                    if (enemyGold >= enemyStrongSoldierCost)
+                        createEnemyStrongSoldier();
+                } else if (unit % 4 !== 0 && enemyGold >= enemySoldierCost) {
+                    for (let i = 0; i < amount; i++) {
+                        if (enemyGold >= enemySoldierCost) createEnemySoldier();
+                    }
+                }
+                computerMakesMove = true;
+            }, random);
+        }
+    }
 }
 
 function isGameOver() {
@@ -762,7 +833,7 @@ function moveEnemySoldiers() {
                 enemySoldiers[i].attack(playerBase);
                 enemySoldiers[i].attacking = false;
                 enemySoldiers[i].sprite.stop();
-            }, 1005);
+            }, 1000);
         } else if (
             collisionWithPlayerSoldier.bool &&
             !enemySoldiers[i].attacking
@@ -777,7 +848,7 @@ function moveEnemySoldiers() {
                 );
                 enemySoldiers[i].attacking = false;
                 enemySoldiers[i].sprite.stop();
-            }, 1005);
+            }, 1000);
         } else if (collisionWithAnotherEnemySoldier) {
             enemySoldiers[i].sprite.textures = idle;
             enemySoldiers[i].sprite.animationSpeed = 1;
